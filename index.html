@@ -73,8 +73,104 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
 
+/* ===================== AUTH PAGES ===================== */
+.auth-container {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.auth-container.active {
+  pointer-events: all; opacity: 1;
+}
+.auth-page {
+  display: none; animation: pageEnter 0.5s ease;
+}
+.auth-page.active { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.auth-modal {
+  width: 420px; max-width: 90vw;
+  background: rgba(15,40,18,0.95); backdrop-filter: blur(32px);
+  border: 1px solid rgba(92,199,111,0.2); border-radius: 32px;
+  padding: 48px 40px; position: relative; overflow: hidden;
+}
+.auth-modal::before {
+  content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 200px; background: radial-gradient(ellipse, rgba(45,138,62,0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.auth-header {
+  text-align: center; margin-bottom: 32px; position: relative; z-index: 2;
+}
+.auth-logo {
+  font-size: 56px; margin-bottom: 16px; display: block;
+}
+.auth-header h1 {
+  font-family: var(--font-display); font-size: 28px; font-weight: 800;
+  margin-bottom: 4px;
+}
+.auth-header p {
+  font-size: 13px; color: rgba(255,255,255,0.45);
+}
+.auth-form {
+  display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; position: relative; z-index: 2;
+}
+.form-group {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.form-group label {
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.form-group input {
+  padding: 12px 14px; border-radius: 12px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+  color: #fff; font-family: var(--font-body); font-size: 14px;
+  outline: none; transition: var(--transition);
+}
+.form-group input:focus {
+  background: rgba(255,255,255,0.1); border-color: var(--green-400);
+  box-shadow: 0 0 0 3px rgba(61,170,82,0.1);
+}
+.form-group input::placeholder {
+  color: rgba(255,255,255,0.3);
+}
+.auth-btn {
+  padding: 13px 16px; border-radius: 12px; border: none; cursor: pointer;
+  font-family: var(--font-display); font-size: 14px; font-weight: 700;
+  transition: var(--transition); width: 100%;
+}
+.auth-btn.primary {
+  background: linear-gradient(135deg, var(--green-500), var(--green-400));
+  color: #fff; box-shadow: 0 8px 32px rgba(45,138,62,0.3);
+}
+.auth-btn.primary:hover {
+  transform: translateY(-2px); box-shadow: 0 12px 40px rgba(45,138,62,0.4);
+}
+.auth-btn.secondary {
+  background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.auth-btn.secondary:hover {
+  background: rgba(255,255,255,0.12); color: #fff;
+}
+.auth-divider {
+  text-align: center; font-size: 12px; color: rgba(255,255,255,0.3);
+  margin: 8px 0;
+}
+.auth-footer {
+  text-align: center; font-size: 13px; color: rgba(255,255,255,0.55); position: relative; z-index: 2;
+}
+.auth-footer a {
+  color: var(--green-300); text-decoration: none; font-weight: 600;
+  cursor: pointer;
+}
+.auth-footer a:hover {
+  color: var(--green-200);
+}
+
 /* ===================== LAYOUT ===================== */
-.app-wrapper { position: relative; z-index: 2; display: flex; min-height: 100vh; }
+.app-wrapper { position: relative; z-index: 2; display: flex; min-height: 100vh; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+.app-wrapper.active { opacity: 1; pointer-events: all; }
 
 /* ===================== SIDEBAR ===================== */
 .sidebar {
@@ -128,7 +224,7 @@ body {
 .user-card {
   display: flex; align-items: center; gap: 12px; padding: 12px;
   border-radius: var(--radius-md); background: var(--glass-bg); cursor: pointer;
-  transition: var(--transition);
+  transition: var(--transition); position: relative;
 }
 .user-card:hover { background: rgba(255,255,255,0.1); }
 .user-avatar {
@@ -139,6 +235,22 @@ body {
 .user-info { flex: 1; min-width: 0; }
 .user-name { font-size: 13px; font-weight: 600; color: #fff; }
 .user-role { font-size: 11px; color: rgba(255,255,255,0.45); }
+.user-menu {
+  position: absolute; bottom: 60px; left: 24px; right: 24px;
+  background: rgba(10,31,14,0.95); backdrop-filter: blur(24px);
+  border: 1px solid rgba(92,199,111,0.2); border-radius: 16px;
+  overflow: hidden; display: none; flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.user-menu.active { display: flex; }
+.user-menu-item {
+  padding: 12px 16px; font-size: 13px; cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: var(--transition); color: rgba(255,255,255,0.7);
+}
+.user-menu-item:last-child { border-bottom: none; }
+.user-menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+.user-menu-item.logout { color: var(--red-400); }
 
 /* ===================== MAIN CONTENT ===================== */
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -158,7 +270,8 @@ body {
   width: 40px; height: 40px; border-radius: 12px;
   background: var(--glass-bg); border: 1px solid var(--glass-border);
   display: flex; align-items: center; justify-content: center; cursor: pointer;
-  transition: var(--transition); font-size: 16px;
+  transition: var(--transition); font-size: 16px; color: inherit;
+  border: none;
 }
 .topbar-btn:hover { background: rgba(255,255,255,0.12); }
 .topbar-search {
@@ -608,6 +721,78 @@ body {
 </div>
 <div class="noise-overlay"></div>
 
+<!-- ===================== AUTH PAGES ===================== -->
+<div id="auth-container" class="auth-container active">
+  <!-- LOGIN PAGE -->
+  <div id="login-page" class="auth-page active">
+    <div class="auth-modal">
+      <div class="auth-header">
+        <div class="auth-logo">🌿</div>
+        <h1>AgriVision AI</h1>
+        <p>Smart Agriculture Platform</p>
+      </div>
+      <form onsubmit="handleLogin(event)" class="auth-form">
+        <div class="form-group">
+          <label for="login-email">Email Address</label>
+          <input type="email" id="login-email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="auth-btn primary">Sign In</button>
+        <div class="auth-divider">or try a demo account</div>
+        <button type="button" class="auth-btn secondary" onclick="demoLogin()">
+          👨‍🌾 Demo: James Okafor
+        </button>
+        <button type="button" class="auth-btn secondary" onclick="demoLogin2()">
+          👩‍🌾 Demo: Aisha Yusuf
+        </button>
+      </form>
+      <div class="auth-footer">
+        Don't have an account? <a href="#" onclick="switchToRegister(event)">Sign up here</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTRATION PAGE -->
+  <div id="register-page" class="auth-page">
+    <div class="auth-modal">
+      <div class="auth-header">
+        <div class="auth-logo">🌿</div>
+        <h1>Create Account</h1>
+        <p>Join AgriVision AI</p>
+      </div>
+      <form onsubmit="handleRegister(event)" class="auth-form">
+        <div class="form-group">
+          <label for="reg-name">Full Name</label>
+          <input type="text" id="reg-name" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email Address</label>
+          <input type="email" id="reg-email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" placeholder="••••••••" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label for="reg-farm">Farm Name</label>
+          <input type="text" id="reg-farm" placeholder="My Farm" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-location">Location</label>
+          <input type="text" id="reg-location" placeholder="State/Region" required>
+        </div>
+        <button type="submit" class="auth-btn primary">Create Account</button>
+      </form>
+      <div class="auth-footer">
+        Already have an account? <a href="#" onclick="switchToLogin(event)">Sign in here</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== ONBOARDING OVERLAY ===================== -->
 <div class="onboarding-overlay" id="onboarding">
   <div class="onboarding-modal">
@@ -676,13 +861,18 @@ body {
     </button>
 
     <div class="sidebar-bottom">
-      <div class="user-card">
-        <div class="user-avatar">👨‍🌾</div>
+      <div class="user-card" onclick="toggleUserMenu()">
+        <div class="user-avatar" id="user-avatar">👨‍🌾</div>
         <div class="user-info">
-          <div class="user-name">James Okafor</div>
-          <div class="user-role">Farm Owner · Pro Plan</div>
+          <div class="user-name" id="user-name">James Okafor</div>
+          <div class="user-role" id="user-role">Farm Owner · Pro Plan</div>
         </div>
         <span style="color:rgba(255,255,255,0.3);font-size:14px;">⚙️</span>
+      </div>
+      <div class="user-menu" id="user-menu">
+        <div class="user-menu-item" onclick="showPage('profile', this)">👤 My Profile</div>
+        <div class="user-menu-item" onclick="showPage('settings', this)">⚙️ Settings</div>
+        <div class="user-menu-item logout" onclick="handleLogout()">🚪 Sign Out</div>
       </div>
     </div>
   </nav>
@@ -701,8 +891,8 @@ body {
           <span>🔍</span>
           <input type="text" placeholder="Search fields, crops...">
         </div>
-        <div class="topbar-btn">🌙</div>
-        <div class="topbar-btn" onclick="showPage('notifications', document.querySelector('[onclick*=notifications]'))">🔔</div>
+        <button class="topbar-btn">🌙</button>
+        <button class="topbar-btn" onclick="showPage('notifications', document.querySelector('[onclick*=notifications]'))">🔔</button>
       </div>
     </div>
 
@@ -1102,7 +1292,6 @@ body {
       <div class="mb-20">
         <div class="drone-map glass-card">
           <div class="drone-grid"></div>
-          <!-- Field outlines -->
           <div style="position:absolute;top:18%;left:15%;width:25%;height:35%;border:2px solid rgba(92,199,111,0.4);border-radius:8px;background:rgba(92,199,111,0.06)">
             <span style="position:absolute;top:8px;left:8px;font-size:11px;font-weight:600;color:var(--green-300);background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:4px">Field A</span>
           </div>
@@ -1112,13 +1301,11 @@ body {
           <div style="position:absolute;top:55%;left:20%;width:20%;height:25%;border:2px solid rgba(56,189,248,0.4);border-radius:8px;background:rgba(56,189,248,0.04)">
             <span style="position:absolute;top:8px;left:8px;font-size:11px;font-weight:600;color:var(--sky-400);background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:4px">Field C</span>
           </div>
-          <!-- Drone Markers -->
           <div class="drone-marker" style="top:22%;left:25%">
             <div class="drone-pulse"></div>
           </div>
           <div class="drone-marker" style="top:38%;left:58%;animation-delay:1s"></div>
           <div class="drone-marker" style="top:60%;left:30%;animation-delay:2s"></div>
-          <!-- Compass -->
           <div style="position:absolute;top:16px;left:16px;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px">🧭</div>
           <div class="drone-info-overlay">
             <div style="display:flex;align-items:center;gap:8px"><div class="drone-status-dot"></div><span style="font-size:12px;font-weight:600;color:var(--green-300)">3 Drones Active</span></div>
@@ -1390,7 +1577,7 @@ body {
           <div class="chat-messages" id="chat-messages">
             <div class="chat-msg ai">
               <div class="chat-avatar ai">🤖</div>
-              <div class="chat-bubble">Hello James! 👋 I'm your AgriVision AI assistant. I can help you with crop disease diagnosis, irrigation advice, yield predictions, weather interpretation, and much more. What's on your mind today?</div>
+              <div class="chat-bubble">Hello! 👋 I'm your AgriVision AI assistant. I can help you with crop disease diagnosis, irrigation advice, yield predictions, weather interpretation, and much more. What's on your mind today?</div>
             </div>
             <div class="chat-msg ai">
               <div class="chat-avatar ai">🤖</div>
@@ -1410,157 +1597,4 @@ body {
               <button onclick="askQuestion('How do I treat leaf blight in cassava?')" style="text-align:left;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s">🍂 Treat leaf blight in cassava?</button>
               <button onclick="askQuestion('When is the best time to harvest sorghum?')" style="text-align:left;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s">🌾 When to harvest sorghum?</button>
               <button onclick="askQuestion('Optimal soil moisture for cowpea?')" style="text-align:left;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s">💧 Optimal moisture for cowpea?</button>
-              <button onclick="askQuestion('How to improve yield per hectare?')" style="text-align:left;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s">📈 Improve yield per hectare?</button>
-            </div>
-          </div>
-          <div class="glass-card" style="padding:24px">
-            <div class="section-title mb-12">AI Capabilities</div>
-            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
-              <div>🌿 Crop disease diagnosis</div>
-              <div>🌦 Weather-based recommendations</div>
-              <div>💧 Irrigation scheduling</div>
-              <div>📊 Yield prediction & analytics</div>
-              <div>🌍 Local language support</div>
-              <div>🎙 Voice commands (mobile)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div><!-- /ai-assistant -->
-
-  </main><!-- /main -->
-</div><!-- /app-wrapper -->
-
-<!-- FAB -->
-<button class="fab" title="Quick Action">＋</button>
-
-<!-- ===================== JAVASCRIPT ===================== -->
-<script>
-/* --------- ONBOARDING --------- */
-const onboardingSteps = [
-  { emoji:'🌾', title:'Welcome to AgriVision AI', desc:'Your intelligent digital agriculture ecosystem. Monitor farms, predict crop issues, and automate everything — powered by AI.' },
-  { emoji:'🚁', title:'Drone Technology', desc:'Deploy autonomous drones to survey and map your entire farm in minutes. Real-time GPS tracking and live crop inspection.' },
-  { emoji:'🔬', title:'AI Crop Detection', desc:'Snap a photo of any crop and our AI instantly identifies diseases, pests, and health issues — with treatment recommendations.' },
-  { emoji:'💧', title:'Smart Irrigation', desc:'Automated irrigation based on real soil moisture data and weather predictions. Save up to 40% water with precision scheduling.' },
-  { emoji:'📊', title:'Analytics & Insights', desc:'Deep farm intelligence with yield forecasts, profit analytics, and AI-driven recommendations to maximize your harvest.' },
-];
-let onboardingIdx = 0;
-
-function nextOnboarding() {
-  onboardingIdx++;
-  if (onboardingIdx >= onboardingSteps.length) { closeOnboarding(); return; }
-  const s = onboardingSteps[onboardingIdx];
-  document.getElementById('ob-emoji').textContent = s.emoji;
-  document.getElementById('ob-title').textContent = s.title;
-  document.getElementById('ob-desc').textContent = s.desc;
-  document.getElementById('ob-btn').textContent = onboardingIdx === onboardingSteps.length - 1 ? '🚀 Enter AgriVision' : 'Continue →';
-  document.querySelectorAll('.step-dot').forEach((d,i) => {
-    d.classList.toggle('active', i === onboardingIdx);
-  });
-}
-function closeOnboarding() {
-  document.getElementById('onboarding').classList.add('hidden');
-}
-
-/* --------- PAGE NAV --------- */
-function showPage(id, btn) {
-  document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  const page = document.getElementById('page-' + id);
-  if (page) { page.classList.add('active'); page.style.animation = 'none'; requestAnimationFrame(() => { page.style.animation = ''; page.classList.add('page-enter'); }); }
-  if (btn) btn.classList.add('active');
-  const titles = {
-    dashboard: ['Farm Dashboard', 'Tuesday, May 19, 2026 · Growing Season Active'],
-    weather: ['Weather Intelligence', 'Live conditions & 7-day forecast'],
-    'ai-crop': ['AI Crop Detection', 'Upload or scan to detect diseases & pests'],
-    irrigation: ['Smart Irrigation', 'Automated water management'],
-    drone: ['Drone Monitoring', '3 drones active · Real-time mapping'],
-    farms: ['Farm Management', 'Fields, crops & worker assignments'],
-    marketplace: ['Marketplace', 'Seeds, tools, fertilizer & equipment'],
-    reports: ['Reports & Analytics', 'YTD performance & export'],
-    notifications: ['Notification Center', '4 unread alerts'],
-    'ai-assistant': ['AI Assistant', 'Powered by AgriVision Intelligence Engine'],
-  };
-  const t = titles[id] || ['AgriVision AI', ''];
-  document.getElementById('page-title').textContent = t[0];
-  document.getElementById('page-subtitle').textContent = t[1];
-}
-
-/* --------- AI SCAN SIMULATION --------- */
-function simulateScan() {
-  const zone = document.getElementById('upload-zone');
-  const result = document.getElementById('ai-result');
-  zone.innerHTML = '<div class="upload-icon" style="animation:pulse 1s infinite">🔍</div><div class="upload-title">Analyzing image...</div><div class="upload-sub">AI model processing · Please wait</div>';
-  setTimeout(() => {
-    zone.innerHTML = '<div class="upload-icon">✅</div><div class="upload-title">Analysis Complete</div><div class="upload-sub">Results shown below</div>';
-    result.style.display = 'block';
-    result.style.animation = 'pageEnter 0.4s ease';
-  }, 2200);
-}
-
-/* --------- AI CHAT --------- */
-const aiResponses = {
-  'maize': 'For maize, the best fertilizers are: **NPK 15:15:15** at planting (200kg/ha), followed by **Urea (46% N)** as top-dressing at 6 weeks (100kg/ha). Also consider adding **Zinc Sulfate** if soil pH is above 7.0. Based on your soil data (pH 6.8), your fields are in the optimal range! 🌽',
-  'cassava': 'For cassava leaf blight, I recommend: 1) Remove and burn all infected leaves immediately. 2) Apply **Mancozeb 80% WP** (2g/litre) every 14 days. 3) Improve air circulation through spacing. 4) Consider resistant varieties like **TME 419** for your next planting season. Your Field C-3 should show improvement within 3 weeks. 🍂',
-  'sorghum': 'Based on your crop data and current weather patterns, **optimal sorghum harvest** is when: grain moisture is 15–20%, physiological maturity is reached (black layer visible), and the panicle has dried and bent downward. For your Field C, I estimate **harvest-ready in approximately 18 days** based on current growth rates. 🌾',
-  'cowpea': 'Optimal soil moisture for cowpea is **40–60%** field capacity. Your Zone B is currently at **38%** — slightly below optimal. I recommend running irrigation for 45 minutes tomorrow. Cowpea is drought-tolerant but yields drop significantly below 30%. I\'ve flagged this for your irrigation scheduler. 💧',
-  'yield': 'Top strategies to improve your yield per hectare: 1) **Precision fertilization** based on soil testing (can improve yield 15–25%). 2) **AI-timed irrigation** — your current water efficiency is 78%; optimizing could add 12% yield. 3) **Disease early detection** using our AI scanner before 10% leaf area is affected. 4) **Drone-guided variable rate application** for uneven fields. Your predicted potential is **9.8t/ha** vs current 8.2t/ha. 📈',
-  default: 'Great question! As your AI agriculture advisor, I can analyze that for you. Based on your farm data and current seasonal conditions in Kogi State, I\'d recommend consulting your field-specific analytics for the most accurate guidance. Would you like me to pull up detailed data for any specific field or crop? 🌿'
-};
-
-function sendChat() {
-  const input = document.getElementById('chat-input');
-  const msg = input.value.trim();
-  if (!msg) return;
-  addChatMsg(msg, 'user');
-  input.value = '';
-  addTyping();
-  const lm = msg.toLowerCase();
-  let resp = aiResponses.default;
-  if (lm.includes('maize') || lm.includes('corn') || lm.includes('fertiliz')) resp = aiResponses.maize;
-  else if (lm.includes('cassava') || lm.includes('blight')) resp = aiResponses.cassava;
-  else if (lm.includes('sorghum') || lm.includes('harvest')) resp = aiResponses.sorghum;
-  else if (lm.includes('cowpea') || lm.includes('moisture')) resp = aiResponses.cowpea;
-  else if (lm.includes('yield') || lm.includes('improve') || lm.includes('production')) resp = aiResponses.yield;
-  setTimeout(() => { removeTyping(); addChatMsg(resp, 'ai'); }, 1800);
-}
-
-function askQuestion(q) {
-  document.getElementById('chat-input').value = q;
-  sendChat();
-}
-
-function addChatMsg(text, type) {
-  const container = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.className = 'chat-msg ' + type;
-  const isAI = type === 'ai';
-  div.innerHTML = `
-    <div class="chat-avatar ${isAI ? 'ai' : 'user-av'}">${isAI ? '🤖' : '👨‍🌾'}</div>
-    <div class="chat-bubble">${text}</div>`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-}
-
-function addTyping() {
-  const container = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.className = 'chat-msg ai'; div.id = 'typing-msg';
-  div.innerHTML = `<div class="chat-avatar ai">🤖</div><div class="chat-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
-  container.appendChild(div); container.scrollTop = container.scrollHeight;
-}
-function removeTyping() { const t = document.getElementById('typing-msg'); if (t) t.remove(); }
-
-/* --------- INIT ANIMATIONS --------- */
-window.addEventListener('load', () => {
-  // Animate health ring
-  setTimeout(() => {
-    const ring = document.getElementById('health-ring-svg');
-    if (ring) {
-      ring.style.strokeDashoffset = '37';
-    }
-  }, 600);
-});
-</script>
-</body>
-</html>
+              <button onclick="askQuestion('How to improve yield per hectq
