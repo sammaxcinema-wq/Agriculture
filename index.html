@@ -1,1600 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgriVision AI — Smart Agriculture Platform</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-/* ===================== CSS VARIABLES ===================== */
-:root {
-  --green-900: #0a1f0e;
-  --green-800: #0f2d14;
-  --green-700: #1a4a20;
-  --green-600: #1f5c27;
-  --green-500: #2d8a3e;
-  --green-400: #3daa52;
-  --green-300: #5cc76f;
-  --green-200: #9de4a8;
-  --green-100: #d4f5da;
-  --amber-400: #f59e0b;
-  --amber-300: #fbbf24;
-  --sky-400: #38bdf8;
-  --red-400: #f87171;
-  --glass-bg: rgba(255,255,255,0.07);
-  --glass-border: rgba(255,255,255,0.13);
-  --glass-blur: blur(18px);
-  --shadow-glow: 0 8px 40px rgba(45,138,62,0.25);
-  --shadow-card: 0 4px 30px rgba(0,0,0,0.35);
-  --radius-xl: 24px;
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
-}
-
-/* ===================== RESET & BASE ===================== */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: var(--font-body);
-  background: var(--green-900);
-  color: #e8f5eb;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* ===================== ANIMATED BACKGROUND ===================== */
-.bg-canvas {
-  position: fixed; inset: 0; z-index: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(29,88,36,0.55) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(20,60,25,0.5) 0%, transparent 65%),
-    radial-gradient(ellipse 100% 80% at 50% 50%, #081408 0%, #0a1f0e 100%);
-  overflow: hidden;
-}
-.bg-orb {
-  position: absolute; border-radius: 50%;
-  filter: blur(80px); animation: orbFloat 12s ease-in-out infinite;
-  pointer-events: none;
-}
-.bg-orb-1 { width: 520px; height: 420px; top: -120px; left: -80px; background: rgba(45,138,62,0.18); animation-delay: 0s; }
-.bg-orb-2 { width: 380px; height: 380px; bottom: -100px; right: -60px; background: rgba(92,199,111,0.12); animation-delay: 4s; }
-.bg-orb-3 { width: 300px; height: 260px; top: 40%; left: 50%; background: rgba(56,189,248,0.07); animation-delay: 7s; }
-@keyframes orbFloat {
-  0%,100% { transform: translate(0,0) scale(1); }
-  33% { transform: translate(30px,-20px) scale(1.05); }
-  66% { transform: translate(-15px,25px) scale(0.97); }
-}
-.noise-overlay {
-  position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-}
-
-/* ===================== AUTH PAGES ===================== */
-.auth-container {
-  position: fixed; inset: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: center;
-  pointer-events: none; opacity: 0;
-  transition: opacity 0.5s ease;
-}
-.auth-container.active {
-  pointer-events: all; opacity: 1;
-}
-.auth-page {
-  display: none; animation: pageEnter 0.5s ease;
-}
-.auth-page.active { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
-.auth-modal {
-  width: 420px; max-width: 90vw;
-  background: rgba(15,40,18,0.95); backdrop-filter: blur(32px);
-  border: 1px solid rgba(92,199,111,0.2); border-radius: 32px;
-  padding: 48px 40px; position: relative; overflow: hidden;
-}
-.auth-modal::before {
-  content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
-  width: 300px; height: 200px; background: radial-gradient(ellipse, rgba(45,138,62,0.25) 0%, transparent 70%);
-  pointer-events: none;
-}
-.auth-header {
-  text-align: center; margin-bottom: 32px; position: relative; z-index: 2;
-}
-.auth-logo {
-  font-size: 56px; margin-bottom: 16px; display: block;
-}
-.auth-header h1 {
-  font-family: var(--font-display); font-size: 28px; font-weight: 800;
-  margin-bottom: 4px;
-}
-.auth-header p {
-  font-size: 13px; color: rgba(255,255,255,0.45);
-}
-.auth-form {
-  display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; position: relative; z-index: 2;
-}
-.form-group {
-  display: flex; flex-direction: column; gap: 6px;
-}
-.form-group label {
-  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6);
-  text-transform: uppercase; letter-spacing: 0.06em;
-}
-.form-group input {
-  padding: 12px 14px; border-radius: 12px;
-  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
-  color: #fff; font-family: var(--font-body); font-size: 14px;
-  outline: none; transition: var(--transition);
-}
-.form-group input:focus {
-  background: rgba(255,255,255,0.1); border-color: var(--green-400);
-  box-shadow: 0 0 0 3px rgba(61,170,82,0.1);
-}
-.form-group input::placeholder {
-  color: rgba(255,255,255,0.3);
-}
-.auth-btn {
-  padding: 13px 16px; border-radius: 12px; border: none; cursor: pointer;
-  font-family: var(--font-display); font-size: 14px; font-weight: 700;
-  transition: var(--transition); width: 100%;
-}
-.auth-btn.primary {
-  background: linear-gradient(135deg, var(--green-500), var(--green-400));
-  color: #fff; box-shadow: 0 8px 32px rgba(45,138,62,0.3);
-}
-.auth-btn.primary:hover {
-  transform: translateY(-2px); box-shadow: 0 12px 40px rgba(45,138,62,0.4);
-}
-.auth-btn.secondary {
-  background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.auth-btn.secondary:hover {
-  background: rgba(255,255,255,0.12); color: #fff;
-}
-.auth-divider {
-  text-align: center; font-size: 12px; color: rgba(255,255,255,0.3);
-  margin: 8px 0;
-}
-.auth-footer {
-  text-align: center; font-size: 13px; color: rgba(255,255,255,0.55); position: relative; z-index: 2;
-}
-.auth-footer a {
-  color: var(--green-300); text-decoration: none; font-weight: 600;
-  cursor: pointer;
-}
-.auth-footer a:hover {
-  color: var(--green-200);
-}
-
-/* ===================== LAYOUT ===================== */
-.app-wrapper { position: relative; z-index: 2; display: flex; min-height: 100vh; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
-.app-wrapper.active { opacity: 1; pointer-events: all; }
-
-/* ===================== SIDEBAR ===================== */
-.sidebar {
-  width: 260px; min-height: 100vh; flex-shrink: 0;
-  background: rgba(10,31,14,0.7); backdrop-filter: blur(24px);
-  border-right: 1px solid var(--glass-border);
-  display: flex; flex-direction: column;
-  padding: 32px 0; position: sticky; top: 0; height: 100vh;
-  overflow-y: auto;
-}
-.sidebar-logo {
-  padding: 0 24px 32px;
-  display: flex; align-items: center; gap: 12px;
-}
-.logo-icon {
-  width: 44px; height: 44px; border-radius: 14px;
-  background: linear-gradient(135deg, var(--green-400), var(--green-600));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; box-shadow: 0 4px 20px rgba(61,170,82,0.4);
-}
-.logo-text { font-family: var(--font-display); font-weight: 800; font-size: 17px; line-height: 1.2; }
-.logo-text span { color: var(--green-300); }
-
-.nav-section-label {
-  padding: 8px 24px 6px;
-  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
-  color: rgba(255,255,255,0.3); text-transform: uppercase;
-}
-.nav-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 11px 24px; cursor: pointer;
-  border-radius: 0; transition: var(--transition);
-  font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.55);
-  position: relative; border: none; background: none; width: 100%; text-align: left;
-}
-.nav-item::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px; border-radius: 0 3px 3px 0;
-  background: var(--green-400); opacity: 0; transition: var(--transition);
-}
-.nav-item:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.04); }
-.nav-item.active { color: #fff; background: rgba(45,138,62,0.18); }
-.nav-item.active::before { opacity: 1; }
-.nav-icon { font-size: 18px; width: 22px; text-align: center; }
-.nav-badge {
-  margin-left: auto; background: var(--green-400); color: #fff;
-  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
-}
-
-.sidebar-bottom { margin-top: auto; padding: 24px; border-top: 1px solid var(--glass-border); }
-.user-card {
-  display: flex; align-items: center; gap: 12px; padding: 12px;
-  border-radius: var(--radius-md); background: var(--glass-bg); cursor: pointer;
-  transition: var(--transition); position: relative;
-}
-.user-card:hover { background: rgba(255,255,255,0.1); }
-.user-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(135deg, #5cc76f, #2d8a3e);
-  display: flex; align-items: center; justify-content: center; font-size: 14px;
-}
-.user-info { flex: 1; min-width: 0; }
-.user-name { font-size: 13px; font-weight: 600; color: #fff; }
-.user-role { font-size: 11px; color: rgba(255,255,255,0.45); }
-.user-menu {
-  position: absolute; bottom: 60px; left: 24px; right: 24px;
-  background: rgba(10,31,14,0.95); backdrop-filter: blur(24px);
-  border: 1px solid rgba(92,199,111,0.2); border-radius: 16px;
-  overflow: hidden; display: none; flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-.user-menu.active { display: flex; }
-.user-menu-item {
-  padding: 12px 16px; font-size: 13px; cursor: pointer;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  transition: var(--transition); color: rgba(255,255,255,0.7);
-}
-.user-menu-item:last-child { border-bottom: none; }
-.user-menu-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-.user-menu-item.logout { color: var(--red-400); }
-
-/* ===================== MAIN CONTENT ===================== */
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-/* ===================== TOP BAR ===================== */
-.topbar {
-  padding: 20px 32px;
-  display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: rgba(10,31,14,0.4); backdrop-filter: blur(16px);
-  position: sticky; top: 0; z-index: 10;
-}
-.topbar-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
-.topbar-subtitle { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 2px; }
-.topbar-actions { display: flex; align-items: center; gap: 12px; }
-.topbar-btn {
-  width: 40px; height: 40px; border-radius: 12px;
-  background: var(--glass-bg); border: 1px solid var(--glass-border);
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
-  transition: var(--transition); font-size: 16px; color: inherit;
-  border: none;
-}
-.topbar-btn:hover { background: rgba(255,255,255,0.12); }
-.topbar-search {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--glass-bg); border: 1px solid var(--glass-border);
-  border-radius: 12px; padding: 8px 14px;
-}
-.topbar-search input {
-  background: none; border: none; outline: none; color: #fff;
-  font-family: var(--font-body); font-size: 13px; width: 180px;
-}
-.topbar-search input::placeholder { color: rgba(255,255,255,0.3); }
-
-/* ===================== CONTENT AREA ===================== */
-.content {
-  flex: 1; overflow-y: auto; padding: 32px;
-  display: none;
-}
-.content.active { display: block; }
-
-/* ===================== GLASS CARD ===================== */
-.glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-card);
-  transition: var(--transition);
-}
-.glass-card:hover { border-color: rgba(255,255,255,0.2); }
-
-/* ===================== GRID LAYOUTS ===================== */
-.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
-.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
-.grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 20px; }
-
-/* ===================== STAT CARDS ===================== */
-.stat-card {
-  padding: 24px;
-  display: flex; flex-direction: column; gap: 12px;
-  position: relative; overflow: hidden;
-}
-.stat-card::after {
-  content: ''; position: absolute; top: -40px; right: -40px;
-  width: 120px; height: 120px; border-radius: 50%;
-  background: var(--card-accent, rgba(45,138,62,0.12));
-}
-.stat-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: rgba(255,255,255,0.5); text-transform: uppercase; }
-.stat-value { font-family: var(--font-display); font-size: 36px; font-weight: 800; line-height: 1; }
-.stat-sub { font-size: 12px; color: rgba(255,255,255,0.45); }
-.stat-icon { font-size: 28px; margin-bottom: 4px; }
-.stat-trend { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
-.stat-trend.up { color: var(--green-300); }
-.stat-trend.down { color: var(--red-400); }
-
-/* ===================== SECTION HEADER ===================== */
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.section-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-.section-link { font-size: 12px; color: var(--green-300); cursor: pointer; font-weight: 600; }
-.section-link:hover { color: var(--green-200); }
-
-/* ===================== HERO FARM CARD ===================== */
-.hero-farm-card {
-  border-radius: var(--radius-xl); overflow: hidden;
-  position: relative; min-height: 240px;
-  background: linear-gradient(135deg, #0f3d1a 0%, #1a5c24 50%, #0d2e10 100%);
-  display: flex; flex-direction: column; justify-content: flex-end;
-  padding: 28px;
-}
-.hero-farm-bg {
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse at 70% 30%, rgba(92,199,111,0.12) 0%, transparent 60%),
-    linear-gradient(160deg, #0f3d1a 0%, #1a5c24 40%, #143319 100%);
-}
-.farm-grid-pattern {
-  position: absolute; inset: 0; opacity: 0.06;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-.hero-farm-content { position: relative; z-index: 2; }
-.hero-tag {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(45,138,62,0.3); border: 1px solid rgba(92,199,111,0.3);
-  border-radius: 20px; padding: 5px 12px; font-size: 11px; font-weight: 600;
-  color: var(--green-200); margin-bottom: 12px;
-}
-.pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green-300); animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
-.hero-farm-title { font-family: var(--font-display); font-size: 26px; font-weight: 800; margin-bottom: 8px; }
-.hero-farm-meta { font-size: 13px; color: rgba(255,255,255,0.55); }
-.hero-farm-stats { display: flex; gap: 24px; margin-top: 20px; }
-.hfs-item { display: flex; flex-direction: column; gap: 3px; }
-.hfs-val { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
-.hfs-lbl { font-size: 11px; color: rgba(255,255,255,0.45); }
-.hero-farm-actions { position: absolute; top: 24px; right: 24px; display: flex; gap: 8px; z-index: 2; }
-.hfa-btn {
-  padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 600;
-  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-  cursor: pointer; color: #fff; transition: var(--transition);
-}
-.hfa-btn:hover { background: rgba(255,255,255,0.18); }
-.hfa-btn.primary { background: var(--green-500); border-color: var(--green-400); }
-
-/* ===================== HEALTH GAUGE ===================== */
-.health-ring { position: relative; width: 110px; height: 110px; }
-.health-ring svg { transform: rotate(-90deg); }
-.health-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 8; }
-.health-ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1); }
-.health-ring-label {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  font-family: var(--font-display);
-}
-.health-ring-val { font-size: 22px; font-weight: 800; }
-.health-ring-sub { font-size: 9px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.05em; }
-
-/* ===================== WEATHER CARD ===================== */
-.weather-card { padding: 28px; position: relative; overflow: hidden; }
-.weather-card::before {
-  content: ''; position: absolute; top: -60px; right: -40px;
-  width: 200px; height: 200px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
-}
-.weather-main { display: flex; align-items: flex-start; gap: 20px; }
-.weather-temp { font-family: var(--font-display); font-size: 64px; font-weight: 800; line-height: 1; }
-.weather-deg { font-size: 32px; color: rgba(255,255,255,0.5); }
-.weather-info { flex: 1; }
-.weather-condition { font-size: 18px; font-weight: 600; color: var(--sky-400); }
-.weather-loc { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 4px; }
-.weather-meta { display: flex; gap: 20px; margin-top: 16px; }
-.weather-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-.weather-icon { font-size: 24px; }
-.weather-forecast { display: flex; gap: 8px; margin-top: 20px; }
-.forecast-day {
-  flex: 1; padding: 12px 8px; border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
-  text-align: center; font-size: 11px;
-}
-.forecast-day.today { background: rgba(45,138,62,0.2); border-color: rgba(92,199,111,0.3); }
-.forecast-day-name { font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
-.forecast-day-icon { font-size: 18px; margin-bottom: 4px; }
-.forecast-day-temp { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
-
-/* ===================== CROP HEALTH BAR ===================== */
-.crop-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.crop-item:last-child { border-bottom: none; }
-.crop-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.crop-name { flex: 1; font-size: 14px; font-weight: 500; }
-.crop-area { font-size: 12px; color: rgba(255,255,255,0.45); width: 60px; text-align: right; }
-.crop-bar-wrap { width: 120px; }
-.crop-bar-track { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
-.crop-bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
-.crop-pct { font-size: 12px; font-weight: 600; width: 36px; text-align: right; }
-
-/* ===================== ACTIVITY TIMELINE ===================== */
-.activity-item { display: flex; gap: 14px; padding: 14px 0; }
-.activity-left { display: flex; flex-direction: column; align-items: center; gap: 0; }
-.activity-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-.activity-line { flex: 1; width: 1px; background: rgba(255,255,255,0.08); min-height: 24px; margin-top: 4px; }
-.activity-item:last-child .activity-line { display: none; }
-.activity-body { flex: 1; padding-top: 4px; }
-.activity-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-.activity-desc { font-size: 12px; color: rgba(255,255,255,0.45); }
-.activity-time { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px; }
-
-/* ===================== SOIL GAUGE ===================== */
-.soil-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-.soil-metric { padding: 14px; border-radius: var(--radius-md); background: rgba(255,255,255,0.04); }
-.soil-metric-label { font-size: 11px; color: rgba(255,255,255,0.45); margin-bottom: 6px; }
-.soil-metric-val { font-family: var(--font-display); font-size: 24px; font-weight: 700; }
-.soil-metric-unit { font-size: 12px; color: rgba(255,255,255,0.4); }
-
-/* ===================== AI CROP DETECTION ===================== */
-.upload-zone {
-  border: 2px dashed rgba(92,199,111,0.3); border-radius: var(--radius-xl);
-  padding: 48px 32px; text-align: center; cursor: pointer; transition: var(--transition);
-  background: rgba(45,138,62,0.05);
-}
-.upload-zone:hover { border-color: var(--green-400); background: rgba(45,138,62,0.1); }
-.upload-icon { font-size: 48px; margin-bottom: 16px; }
-.upload-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-.upload-sub { font-size: 13px; color: rgba(255,255,255,0.45); }
-.ai-result { padding: 24px; }
-.ai-result-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-.ai-result-icon { width: 52px; height: 52px; border-radius: var(--radius-md); background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); display: flex; align-items: center; justify-content: center; font-size: 24px; }
-.ai-result-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
-.ai-result-sub { font-size: 13px; color: rgba(255,255,255,0.45); }
-.confidence-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.07); overflow: hidden; margin-top: 12px; }
-.confidence-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--green-500), var(--green-300)); }
-.treatment-card { padding: 14px; border-radius: var(--radius-md); background: rgba(255,255,255,0.04); border-left: 3px solid var(--green-400); margin-top: 10px; }
-.treatment-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.treatment-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
-
-/* ===================== IRRIGATION ===================== */
-.irrigation-zone { padding: 18px; border-radius: var(--radius-lg); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
-.irrigation-zone-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.irrigation-zone-name { font-size: 14px; font-weight: 600; }
-.toggle-switch { position: relative; width: 44px; height: 24px; }
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; inset: 0; border-radius: 24px; background: rgba(255,255,255,0.12); cursor: pointer; transition: var(--transition); }
-.toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: var(--transition); }
-.toggle-switch input:checked + .toggle-slider { background: var(--green-500); }
-.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: #fff; }
-.water-level { height: 80px; border-radius: var(--radius-md); background: rgba(56,189,248,0.07); overflow: hidden; position: relative; }
-.water-level-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: var(--radius-md); transition: height 1.5s ease; }
-.water-level-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-
-/* ===================== DRONE MAP ===================== */
-.drone-map {
-  position: relative; border-radius: var(--radius-xl); overflow: hidden;
-  min-height: 320px;
-  background:
-    radial-gradient(circle at 30% 40%, rgba(45,138,62,0.25) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(92,199,111,0.15) 0%, transparent 40%),
-    linear-gradient(135deg, #0c2e11 0%, #143d1a 50%, #0a2710 100%);
-}
-.drone-grid {
-  position: absolute; inset: 0; opacity: 0.12;
-  background-image: linear-gradient(rgba(92,199,111,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(92,199,111,0.5) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-.drone-marker { position: absolute; animation: droneFloat 4s ease-in-out infinite; }
-.drone-marker::before {
-  content: '🚁'; font-size: 28px;
-  filter: drop-shadow(0 0 12px rgba(92,199,111,0.8));
-}
-@keyframes droneFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(12px,-8px); } }
-.drone-pulse { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
-.drone-pulse::before, .drone-pulse::after {
-  content: ''; position: absolute; border: 2px solid rgba(92,199,111,0.4);
-  border-radius: 50%; animation: droneRing 2.5s ease-out infinite;
-}
-.drone-pulse::before { width: 40px; height: 40px; margin: -20px; }
-.drone-pulse::after { width: 70px; height: 70px; margin: -35px; animation-delay: 0.8s; }
-@keyframes droneRing { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
-.drone-info-overlay {
-  position: absolute; bottom: 20px; left: 20px; right: 20px;
-  background: rgba(10,31,14,0.75); backdrop-filter: blur(16px);
-  border: 1px solid rgba(92,199,111,0.2); border-radius: var(--radius-lg);
-  padding: 16px 20px; display: flex; align-items: center; gap: 20px;
-}
-.drone-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-300); animation: pulse 2s infinite; }
-.drone-stat { display: flex; flex-direction: column; gap: 2px; }
-.drone-stat-val { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
-.drone-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; }
-
-/* ===================== MARKETPLACE ===================== */
-.product-card { padding: 20px; cursor: pointer; transition: var(--transition); }
-.product-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
-.product-img {
-  width: 100%; height: 140px; border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center; font-size: 52px;
-  margin-bottom: 14px;
-}
-.product-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-.product-cat { font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
-.product-price { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--green-300); }
-.product-old-price { font-size: 13px; color: rgba(255,255,255,0.35); text-decoration: line-through; margin-left: 6px; }
-.product-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
-.add-btn {
-  width: 34px; height: 34px; border-radius: 10px; border: none; cursor: pointer;
-  background: var(--green-500); color: #fff; font-size: 18px; display: flex;
-  align-items: center; justify-content: center; transition: var(--transition);
-}
-.add-btn:hover { background: var(--green-400); transform: scale(1.08); }
-.rating { font-size: 11px; color: var(--amber-300); }
-
-/* ===================== NOTIFICATIONS ===================== */
-.notif-item { padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 14px; }
-.notif-icon { width: 42px; height: 42px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.notif-body { flex: 1; }
-.notif-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-.notif-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
-.notif-time { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 5px; }
-.notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-400); flex-shrink: 0; margin-top: 6px; }
-
-/* ===================== AI ASSISTANT ===================== */
-.chat-container { display: flex; flex-direction: column; height: 520px; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-.chat-msg { display: flex; gap: 10px; max-width: 80%; }
-.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
-.chat-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-.chat-avatar.ai { background: linear-gradient(135deg, var(--green-500), var(--green-700)); }
-.chat-avatar.user-av { background: rgba(255,255,255,0.1); }
-.chat-bubble { padding: 12px 16px; border-radius: 16px; font-size: 13px; line-height: 1.6; }
-.chat-msg.ai .chat-bubble { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px 16px 16px 16px; }
-.chat-msg.user .chat-bubble { background: var(--green-600); border-radius: 16px 4px 16px 16px; }
-.chat-input-row { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; gap: 10px; }
-.chat-input {
-  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px; padding: 12px 16px; color: #fff; font-family: var(--font-body); font-size: 13px; outline: none;
-}
-.chat-input::placeholder { color: rgba(255,255,255,0.3); }
-.chat-send {
-  width: 42px; height: 42px; border-radius: 12px; background: var(--green-500);
-  border: none; cursor: pointer; color: #fff; font-size: 16px; display: flex;
-  align-items: center; justify-content: center; transition: var(--transition);
-}
-.chat-send:hover { background: var(--green-400); transform: scale(1.05); }
-.typing-indicator { display: flex; gap: 4px; align-items: center; padding: 8px 4px; }
-.typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green-400); animation: typingBounce 1.4s infinite; }
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes typingBounce { 0%,80%,100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-8px); opacity: 1; } }
-
-/* ===================== CHARTS ===================== */
-.chart-area { padding: 24px; }
-.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 140px; margin-top: 16px; }
-.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.bar { width: 100%; border-radius: 6px 6px 0 0; min-height: 8px; transition: height 1s cubic-bezier(0.4,0,0.2,1); cursor: pointer; position: relative; }
-.bar:hover::after {
-  content: attr(data-val); position: absolute; top: -26px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,0,0,0.7); color: #fff; padding: 3px 8px; border-radius: 6px; font-size: 11px; white-space: nowrap;
-}
-.bar-label { font-size: 10px; color: rgba(255,255,255,0.4); }
-.line-chart { position: relative; height: 100px; margin-top: 16px; }
-.line-chart svg { width: 100%; height: 100%; }
-
-/* ===================== REPORTS ===================== */
-.report-card { padding: 24px; }
-.report-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-.report-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
-.export-btn {
-  padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 600;
-  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
-  cursor: pointer; color: rgba(255,255,255,0.8); transition: var(--transition); display: flex; align-items: center; gap: 6px;
-}
-.export-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
-.report-table { width: 100%; border-collapse: collapse; }
-.report-table th { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); }
-.report-table td { padding: 12px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-.report-table tr:hover td { background: rgba(255,255,255,0.02); }
-.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.badge-green { background: rgba(45,138,62,0.25); color: var(--green-300); }
-.badge-amber { background: rgba(245,158,11,0.2); color: var(--amber-300); }
-.badge-red { background: rgba(248,113,113,0.2); color: var(--red-400); }
-
-/* ===================== ONBOARDING ===================== */
-.onboarding-overlay {
-  position: fixed; inset: 0; z-index: 100;
-  background: rgba(8,20,8,0.92); backdrop-filter: blur(8px);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 1; transition: opacity 0.5s ease;
-}
-.onboarding-overlay.hidden { opacity: 0; pointer-events: none; }
-.onboarding-modal {
-  width: 440px; max-width: 92vw;
-  background: rgba(15,40,18,0.9); backdrop-filter: blur(32px);
-  border: 1px solid rgba(92,199,111,0.15); border-radius: 32px;
-  padding: 48px 40px; text-align: center; position: relative; overflow: hidden;
-}
-.onboarding-bg-glow { position: absolute; top: -80px; left: 50%; transform: translateX(-50%); width: 300px; height: 200px; background: radial-gradient(ellipse, rgba(45,138,62,0.25) 0%, transparent 70%); pointer-events: none; }
-.onboarding-step-dots { display: flex; gap: 8px; justify-content: center; margin-bottom: 32px; }
-.step-dot { width: 8px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.15); transition: var(--transition); }
-.step-dot.active { width: 24px; background: var(--green-400); }
-.onboarding-emoji { font-size: 56px; margin-bottom: 20px; display: block; }
-.onboarding-title { font-family: var(--font-display); font-size: 26px; font-weight: 800; margin-bottom: 12px; line-height: 1.2; }
-.onboarding-desc { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.7; margin-bottom: 36px; }
-.onboarding-btn {
-  width: 100%; padding: 16px; border-radius: 16px; font-family: var(--font-display);
-  font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: var(--transition);
-  background: linear-gradient(135deg, var(--green-500), var(--green-400));
-  color: #fff; box-shadow: 0 8px 32px rgba(45,138,62,0.4);
-}
-.onboarding-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(45,138,62,0.5); }
-.onboarding-skip { margin-top: 16px; font-size: 13px; color: rgba(255,255,255,0.35); cursor: pointer; }
-.onboarding-skip:hover { color: rgba(255,255,255,0.6); }
-
-/* ===================== FARM MANAGEMENT ===================== */
-.farm-card-mini { padding: 20px; cursor: pointer; transition: var(--transition); }
-.farm-card-mini:hover { transform: translateY(-2px); }
-.farm-map-thumb { height: 120px; border-radius: var(--radius-md); margin-bottom: 14px; display: flex; align-items: center; justify-content: center; font-size: 40px; position: relative; overflow: hidden; }
-.farm-map-thumb-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #0f3d1a, #1a5c24); }
-.farm-map-thumb-grid { position: absolute; inset: 0; opacity: 0.15; background-image: linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px); background-size: 20px 20px; }
-.farm-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.farm-location { font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 12px; }
-.farm-stats-row { display: flex; gap: 12px; }
-.farm-stat { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.04); text-align: center; }
-.farm-stat-val { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
-.farm-stat-lbl { font-size: 10px; color: rgba(255,255,255,0.4); }
-
-/* ===================== ADD BTN ===================== */
-.fab {
-  position: fixed; bottom: 32px; right: 32px; z-index: 50;
-  width: 56px; height: 56px; border-radius: 18px;
-  background: linear-gradient(135deg, var(--green-400), var(--green-600));
-  border: none; cursor: pointer; color: #fff; font-size: 24px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 32px rgba(45,138,62,0.5); transition: var(--transition);
-}
-.fab:hover { transform: scale(1.08) translateY(-2px); box-shadow: 0 12px 40px rgba(45,138,62,0.6); }
-
-/* ===================== RESPONSIVE ===================== */
-@media (max-width: 1100px) {
-  .grid-4 { grid-template-columns: repeat(2,1fr); }
-}
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
-  .topbar { padding: 16px 20px; }
-  .content { padding: 20px; }
-}
-
-/* ===================== SCROLL BAR ===================== */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(92,199,111,0.2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(92,199,111,0.4); }
-
-/* ===================== SKELETON LOADER ===================== */
-.skeleton { border-radius: 8px; background: rgba(255,255,255,0.06); position: relative; overflow: hidden; }
-.skeleton::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-  animation: shimmer 1.6s infinite;
-}
-@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-/* ===================== MISC UTILITIES ===================== */
-.flex { display: flex; } .flex-col { flex-direction: column; }
-.items-center { align-items: center; } .justify-between { justify-content: space-between; }
-.gap-8 { gap: 8px; } .gap-12 { gap: 12px; } .gap-16 { gap: 16px; } .gap-20 { gap: 20px; }
-.mb-4 { margin-bottom: 4px; } .mb-8 { margin-bottom: 8px; } .mb-12 { margin-bottom: 12px; }
-.mb-16 { margin-bottom: 16px; } .mb-20 { margin-bottom: 20px; } .mb-24 { margin-bottom: 24px; }
-.text-sm { font-size: 13px; } .text-xs { font-size: 11px; }
-.text-muted { color: rgba(255,255,255,0.45); }
-.text-green { color: var(--green-300); }
-.font-bold { font-weight: 700; }
-.w-full { width: 100%; }
-.mt-auto { margin-top: auto; }
-
-.page-enter { animation: pageEnter 0.4s cubic-bezier(0.4,0,0.2,1); }
-@keyframes pageEnter { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>AgriVision AI · Intelligent Agriculture Ecosystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#0a1f0e;color:#e8f5eb;font-family:'DM Sans',sans-serif;overflow-x:hidden}
+    :root{
+      --green-900:#0a1f0e;--green-800:#0f2d14;--green-700:#1a4a20;--green-600:#1f5c27;
+      --green-500:#2d8a3e;--green-400:#3daa52;--green-300:#5cc76f;--green-200:#9de4a8;
+      --amber-400:#f59e0b;--sky-400:#38bdf8;--red-400:#f87171;
+      --glass-bg:rgba(255,255,255,0.06);--glass-border:rgba(255,255,255,0.1);--glass-blur:blur(18px);
+      --radius-xl:24px;--radius-lg:16px;--radius-md:12px;--font-display:'Syne',sans-serif;
+      --transition:0.3s cubic-bezier(0.2,0.9,0.4,1.1)
+    }
+    .bg-canvas{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(29,88,36,0.5),transparent 70%),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(20,60,25,0.45),transparent 65%),#0a1f0e}
+    .bg-orb{position:absolute;border-radius:50%;filter:blur(80px);animation:float 18s infinite;pointer-events:none}
+    .bg-orb-1{width:520px;height:420px;top:-120px;left:-80px;background:rgba(45,138,62,0.2)}
+    .bg-orb-2{width:380px;height:380px;bottom:-100px;right:-60px;background:rgba(92,199,111,0.15);animation-delay:4s}
+    @keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.04)}66%{transform:translate(-15px,20px) scale(0.96)}}
+    .toast{position:fixed;top:24px;right:24px;z-index:300;background:rgba(15,40,18,0.95);backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:var(--radius-md);padding:12px 20px;display:flex;gap:12px;align-items:center;transform:translateY(-30px);opacity:0;transition:0.25s;pointer-events:none;font-size:14px}
+    .toast.show{transform:translateY(0);opacity:1;pointer-events:none}
+    /* AUTH */
+    .auth-container{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);transition:0.3s}
+    .auth-container.hidden{opacity:0;visibility:hidden;pointer-events:none}
+    .auth-card{background:rgba(10,31,14,0.9);backdrop-filter:blur(28px);border:1px solid rgba(92,199,111,0.2);border-radius:40px;width:440px;max-width:90vw;padding:40px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5)}
+    .auth-header{text-align:center;margin-bottom:28px}
+    .auth-logo{font-size:52px;margin-bottom:12px}
+    .auth-header h1{font-family:var(--font-display);font-weight:800;font-size:28px}
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+    .form-group label{font-size:11px;font-weight:600;text-transform:uppercase;color:rgba(255,255,255,0.5);letter-spacing:0.05em}
+    .form-group input{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:12px 14px;color:white;font-family:inherit;outline:none}
+    .form-group input:focus{border-color:var(--green-400)}
+    .btn-primary{background:linear-gradient(135deg,var(--green-500),var(--green-400));border:none;border-radius:16px;padding:14px;font-weight:700;color:white;cursor:pointer;width:100%;font-family:var(--font-display);transition:0.2s}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(45,138,62,0.4)}
+    .auth-footer{text-align:center;margin-top:20px;font-size:13px;color:rgba(255,255,255,0.5)}
+    .auth-footer a{color:var(--green-300);cursor:pointer;font-weight:600}
+    /* APP LAYOUT */
+    .app-wrapper{position:relative;z-index:5;display:flex;min-height:100vh;opacity:0;pointer-events:none;transition:opacity 0.4s}
+    .app-wrapper.active{opacity:1;pointer-events:auto}
+    .sidebar{width:270px;background:rgba(10,31,14,0.75);backdrop-filter:blur(28px);border-right:1px solid var(--glass-border);padding:28px 0;height:100vh;position:sticky;top:0;overflow-y:auto}
+    .logo-area{display:flex;align-items:center;gap:12px;padding:0 24px 28px;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--green-400),var(--green-600));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px}
+    .logo-text{font-family:var(--font-display);font-weight:800;font-size:18px}
+    .logo-text span{color:var(--green-300)}
+    .nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;width:100%;background:none;border:none;color:rgba(255,255,255,0.6);font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:0.2s}
+    .nav-item:hover{background:rgba(255,255,255,0.04);color:white}
+    .nav-item.active{background:rgba(45,138,62,0.15);color:white;border-left:3px solid var(--green-400)}
+    .nav-icon{font-size:18px;width:24px}
+    .main{flex:1;display:flex;flex-direction:column}
+    .topbar{display:flex;justify-content:space-between;align-items:center;padding:18px 32px;background:rgba(10,31,14,0.5);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.05);position:sticky;top:0;z-index:10}
+    .page-title{font-family:var(--font-display);font-weight:700;font-size:20px}
+    .content-panel{display:none;padding:32px;animation:fadeIn 0.25s ease}
+    .content-panel.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    /* cards and utilities */
+    .glass-card{background:var(--glass-bg);backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:var(--radius-xl);padding:24px}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:24px}
+    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:24px}
+    .stat-card .stat-value{font-size:34px;font-weight:800;font-family:var(--font-display)}
+    .health-ring{width:100px;height:100px;position:relative}
+    .toggle-switch{position:relative;width:46px;height:24px;background:rgba(255,255,255,0.12);border-radius:30px;cursor:pointer;transition:0.2s}
+    .toggle-switch.active{background:var(--green-500)}
+    .toggle-knob{position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:3px;left:4px;transition:0.2s}
+    .toggle-switch.active .toggle-knob{transform:translateX(22px)}
+    @media (max-width: 860px){.grid-4,.grid-2{grid-template-columns:1fr}.sidebar{position:fixed;left:-100%;transition:0.3s;z-index:100}.sidebar.open{left:0}.menu-toggle{display:block}}
+    .badge{background:rgba(92,199,111,0.2);padding:4px 10px;border-radius:40px;font-size:11px;font-weight:600}
+    .chat-messages{height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+    .message{max-width:85%;padding:12px 14px;border-radius:18px;font-size:13px}
+    .user-message{background:var(--green-600);align-self:flex-end;border-radius:18px 4px 18px 18px}
+    .ai-message{background:rgba(255,255,255,0.07);align-self:flex-start;border-radius:4px 18px 18px 18px}
+  </style>
 </head>
 <body>
+<div class="bg-canvas"><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div></div>
+<div id="toastMsg" class="toast">🌿 <span id="toastText"></span></div>
 
-<!-- ANIMATED BACKGROUND -->
-<div class="bg-canvas">
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-orb bg-orb-3"></div>
-</div>
-<div class="noise-overlay"></div>
-
-<!-- ===================== AUTH PAGES ===================== -->
-<div id="auth-container" class="auth-container active">
-  <!-- LOGIN PAGE -->
-  <div id="login-page" class="auth-page active">
-    <div class="auth-modal">
-      <div class="auth-header">
-        <div class="auth-logo">🌿</div>
-        <h1>AgriVision AI</h1>
-        <p>Smart Agriculture Platform</p>
-      </div>
-      <form onsubmit="handleLogin(event)" class="auth-form">
-        <div class="form-group">
-          <label for="login-email">Email Address</label>
-          <input type="email" id="login-email" placeholder="you@example.com" required>
-        </div>
-        <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="auth-btn primary">Sign In</button>
-        <div class="auth-divider">or try a demo account</div>
-        <button type="button" class="auth-btn secondary" onclick="demoLogin()">
-          👨‍🌾 Demo: James Okafor
-        </button>
-        <button type="button" class="auth-btn secondary" onclick="demoLogin2()">
-          👩‍🌾 Demo: Aisha Yusuf
-        </button>
-      </form>
-      <div class="auth-footer">
-        Don't have an account? <a href="#" onclick="switchToRegister(event)">Sign up here</a>
-      </div>
+<!-- AUTH CONTAINER -->
+<div id="authContainer" class="auth-container">
+  <div class="auth-card">
+    <div id="loginFormContainer">
+      <div class="auth-header"><div class="auth-logo">🌾</div><h1>AgriVision AI</h1><p>intelligent agriculture platform</p></div>
+      <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="farmer@agrivision.ai"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="loginPass" placeholder="••••••"></div>
+      <button class="btn-primary" onclick="auth.login()">Sign in</button>
+      <div class="auth-footer">New farmer? <a onclick="auth.showSignup()">Create farm node</a> &nbsp;|&nbsp; <a onclick="auth.demoLogin('james@demo.com')">Demo: James</a></div>
     </div>
-  </div>
-
-  <!-- REGISTRATION PAGE -->
-  <div id="register-page" class="auth-page">
-    <div class="auth-modal">
-      <div class="auth-header">
-        <div class="auth-logo">🌿</div>
-        <h1>Create Account</h1>
-        <p>Join AgriVision AI</p>
-      </div>
-      <form onsubmit="handleRegister(event)" class="auth-form">
-        <div class="form-group">
-          <label for="reg-name">Full Name</label>
-          <input type="text" id="reg-name" placeholder="Your name" required>
-        </div>
-        <div class="form-group">
-          <label for="reg-email">Email Address</label>
-          <input type="email" id="reg-email" placeholder="you@example.com" required>
-        </div>
-        <div class="form-group">
-          <label for="reg-password">Password</label>
-          <input type="password" id="reg-password" placeholder="••••••••" required minlength="6">
-        </div>
-        <div class="form-group">
-          <label for="reg-farm">Farm Name</label>
-          <input type="text" id="reg-farm" placeholder="My Farm" required>
-        </div>
-        <div class="form-group">
-          <label for="reg-location">Location</label>
-          <input type="text" id="reg-location" placeholder="State/Region" required>
-        </div>
-        <button type="submit" class="auth-btn primary">Create Account</button>
-      </form>
-      <div class="auth-footer">
-        Already have an account? <a href="#" onclick="switchToLogin(event)">Sign in here</a>
-      </div>
+    <div id="signupFormContainer" style="display:none">
+      <div class="auth-header"><div class="auth-logo">🌱</div><h1>Register</h1><p>start your smart journey</p></div>
+      <div class="form-group"><label>Full name</label><input id="signupName" placeholder="James Okafor"></div>
+      <div class="form-group"><label>Email</label><input id="signupEmail" placeholder="hello@agrivision.ai"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="signupPass" placeholder="min 6 chars"></div>
+      <button class="btn-primary" onclick="auth.signup()">Create account</button>
+      <div class="auth-footer"><a onclick="auth.showLogin()">← Back to login</a></div>
     </div>
   </div>
 </div>
 
-<!-- ===================== ONBOARDING OVERLAY ===================== -->
-<div class="onboarding-overlay" id="onboarding">
-  <div class="onboarding-modal">
-    <div class="onboarding-bg-glow"></div>
-    <div class="onboarding-step-dots">
-      <div class="step-dot active" id="dot0"></div>
-      <div class="step-dot" id="dot1"></div>
-      <div class="step-dot" id="dot2"></div>
-      <div class="step-dot" id="dot3"></div>
-      <div class="step-dot" id="dot4"></div>
+<!-- MAIN APP -->
+<div id="appWrapper" class="app-wrapper">
+  <div class="sidebar" id="sidebar">
+    <div class="logo-area"><div class="logo-icon">🌿</div><div class="logo-text">Agri<span>Vision</span> AI</div></div>
+    <div style="margin-top: 24px">
+      <button class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span> Dashboard</button>
+      <button class="nav-item" data-page="weather"><span class="nav-icon">🌤️</span> Weather Intel</button>
+      <button class="nav-item" data-page="ai-crop"><span class="nav-icon">🔬</span> AI Crop Scan</button>
+      <button class="nav-item" data-page="irrigation"><span class="nav-icon">💧</span> Smart Irrigation</button>
+      <button class="nav-item" data-page="drone"><span class="nav-icon">🚁</span> Drone Fleet</button>
+      <button class="nav-item" data-page="farms"><span class="nav-icon">🗺️</span> Farm Management</button>
+      <button class="nav-item" data-page="market"><span class="nav-icon">🛒</span> Marketplace</button>
+      <button class="nav-item" data-page="notifications"><span class="nav-icon">🔔</span> Alerts</button>
+      <button class="nav-item" data-page="reports"><span class="nav-icon">📈</span> Reports</button>
+      <button class="nav-item" data-page="assistant"><span class="nav-icon">🤖</span> AI Assistant</button>
     </div>
-    <span class="onboarding-emoji" id="ob-emoji">🌾</span>
-    <h2 class="onboarding-title" id="ob-title">Welcome to AgriVision AI</h2>
-    <p class="onboarding-desc" id="ob-desc">Your intelligent digital agriculture ecosystem. Monitor farms, predict crop issues, and automate everything — powered by AI.</p>
-    <button class="onboarding-btn" id="ob-btn" onclick="nextOnboarding()">Get Started →</button>
-    <p class="onboarding-skip" onclick="closeOnboarding()">Skip for now</p>
+    <div style="margin-top: auto; padding: 24px 20px;">
+      <div style="background:var(--glass-bg); border-radius: 20px; padding: 12px; display:flex; align-items:center; gap:12px">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--green-500);display:flex;align-items:center;justify-content:center;font-weight:bold" id="userAvatar">JO</div>
+        <div><div id="userDisplayName" style="font-weight:600">Farmer</div><div style="font-size:11px;opacity:0.6">pro plan</div></div>
+        <button onclick="auth.logout()" style="margin-left:auto;background:none;border:none;color:#f87171;cursor:pointer">🚪</button>
+      </div>
+    </div>
   </div>
-</div>
 
-<!-- ===================== APP WRAPPER ===================== -->
-<div class="app-wrapper">
+  <div class="main">
+    <div class="topbar"><div class="page-title" id="currentPageTitle">Dashboard</div><div class="topbar-search" style="display:flex;gap:8px;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:30px"><span>🔍</span><input placeholder="search crops..." style="background:none;border:none;color:white"></div></div>
 
-  <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">🌿</div>
-      <div class="logo-text">Agri<span>Vision</span> AI</div>
-    </div>
-
-    <div class="nav-section-label">Overview</div>
-    <button class="nav-item active" onclick="showPage('dashboard', this)">
-      <span class="nav-icon">📊</span> Dashboard
-    </button>
-    <button class="nav-item" onclick="showPage('weather', this)">
-      <span class="nav-icon">🌤</span> Weather
-    </button>
-
-    <div class="nav-section-label">Farm Tools</div>
-    <button class="nav-item" onclick="showPage('ai-crop', this)">
-      <span class="nav-icon">🔬</span> AI Crop Detection
-    </button>
-    <button class="nav-item" onclick="showPage('irrigation', this)">
-      <span class="nav-icon">💧</span> Smart Irrigation
-    </button>
-    <button class="nav-item" onclick="showPage('drone', this)">
-      <span class="nav-icon">🚁</span> Drone Monitoring
-    </button>
-    <button class="nav-item" onclick="showPage('farms', this)">
-      <span class="nav-icon">🗺</span> Farm Management
-    </button>
-
-    <div class="nav-section-label">Commerce</div>
-    <button class="nav-item" onclick="showPage('marketplace', this)">
-      <span class="nav-icon">🛒</span> Marketplace
-    </button>
-    <button class="nav-item" onclick="showPage('reports', this)">
-      <span class="nav-icon">📈</span> Reports
-    </button>
-
-    <div class="nav-section-label">Communication</div>
-    <button class="nav-item" onclick="showPage('notifications', this)">
-      <span class="nav-icon">🔔</span> Notifications <span class="nav-badge">4</span>
-    </button>
-    <button class="nav-item" onclick="showPage('ai-assistant', this)">
-      <span class="nav-icon">🤖</span> AI Assistant
-    </button>
-
-    <div class="sidebar-bottom">
-      <div class="user-card" onclick="toggleUserMenu()">
-        <div class="user-avatar" id="user-avatar">👨‍🌾</div>
-        <div class="user-info">
-          <div class="user-name" id="user-name">James Okafor</div>
-          <div class="user-role" id="user-role">Farm Owner · Pro Plan</div>
-        </div>
-        <span style="color:rgba(255,255,255,0.3);font-size:14px;">⚙️</span>
-      </div>
-      <div class="user-menu" id="user-menu">
-        <div class="user-menu-item" onclick="showPage('profile', this)">👤 My Profile</div>
-        <div class="user-menu-item" onclick="showPage('settings', this)">⚙️ Settings</div>
-        <div class="user-menu-item logout" onclick="handleLogout()">🚪 Sign Out</div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- MAIN CONTENT -->
-  <main class="main">
-
-    <!-- TOP BAR -->
-    <div class="topbar">
-      <div>
-        <div class="topbar-title" id="page-title">Farm Dashboard</div>
-        <div class="topbar-subtitle" id="page-subtitle">Tuesday, May 19, 2026 · Growing Season Active</div>
-      </div>
-      <div class="topbar-actions">
-        <div class="topbar-search">
-          <span>🔍</span>
-          <input type="text" placeholder="Search fields, crops...">
-        </div>
-        <button class="topbar-btn">🌙</button>
-        <button class="topbar-btn" onclick="showPage('notifications', document.querySelector('[onclick*=notifications]'))">🔔</button>
-      </div>
-    </div>
-
-    <!-- ========== PAGE: DASHBOARD ========== -->
-    <div class="content active page-enter" id="page-dashboard">
-
-      <!-- Stats Row -->
-      <div class="grid-4 mb-24">
-        <div class="glass-card stat-card" style="--card-accent:rgba(45,138,62,0.2)">
-          <div class="stat-icon">🌾</div>
-          <div class="stat-label">Total Farm Area</div>
-          <div class="stat-value">244<span style="font-size:18px;color:rgba(255,255,255,0.5)">ha</span></div>
-          <div class="stat-trend up">↑ 12% from last season</div>
-        </div>
-        <div class="glass-card stat-card" style="--card-accent:rgba(92,199,111,0.15)">
-          <div class="stat-icon">💚</div>
-          <div class="stat-label">Crop Health Score</div>
-          <div class="stat-value" style="color:var(--green-300)">87<span style="font-size:18px;opacity:0.5">%</span></div>
-          <div class="stat-trend up">↑ 3pts this week</div>
-        </div>
-        <div class="glass-card stat-card" style="--card-accent:rgba(245,158,11,0.12)">
-          <div class="stat-icon">📦</div>
-          <div class="stat-label">Yield Forecast</div>
-          <div class="stat-value" style="color:var(--amber-300)">8.2<span style="font-size:18px;opacity:0.5">t/ha</span></div>
-          <div class="stat-trend up">↑ Above average</div>
-        </div>
-        <div class="glass-card stat-card" style="--card-accent:rgba(56,189,248,0.1)">
-          <div class="stat-icon">💰</div>
-          <div class="stat-label">Profit Forecast</div>
-          <div class="stat-value" style="color:var(--sky-400)">$142k</div>
-          <div class="stat-trend up">↑ 18% vs last yr</div>
-        </div>
-      </div>
-
-      <!-- Main content row -->
-      <div class="grid-2 mb-24" style="grid-template-columns:1.6fr 1fr">
-
-        <!-- Hero Farm Card -->
-        <div class="hero-farm-card glass-card">
-          <div class="hero-farm-bg"></div>
-          <div class="farm-grid-pattern"></div>
-          <div class="hero-farm-actions">
-            <button class="hfa-btn" onclick="showPage('drone',document.querySelector('[onclick*=drone]'))">🚁 View Drone</button>
-            <button class="hfa-btn primary" onclick="showPage('farms',document.querySelector('[onclick*=farms]'))">Manage →</button>
-          </div>
-          <div class="hero-farm-content">
-            <div class="hero-tag"><div class="pulse-dot"></div> Live Monitoring Active</div>
-            <div class="hero-farm-title">Okafor North Farm</div>
-            <div class="hero-farm-meta">📍 Kogi State, Nigeria · Updated 2 min ago</div>
-            <div class="hero-farm-stats">
-              <div class="hfs-item"><div class="hfs-val">144ha</div><div class="hfs-lbl">Active Area</div></div>
-              <div class="hfs-item"><div class="hfs-val" style="color:var(--green-300)">92%</div><div class="hfs-lbl">Field Health</div></div>
-              <div class="hfs-item"><div class="hfs-val" style="color:var(--sky-400)">3</div><div class="hfs-lbl">Drones Up</div></div>
-              <div class="hfs-item"><div class="hfs-val" style="color:var(--amber-300)">18°C</div><div class="hfs-lbl">Soil Temp</div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Crop Health -->
-        <div class="glass-card" style="padding:24px">
-          <div class="section-header mb-16">
-            <div class="section-title">Crop Distribution</div>
-            <div class="section-link">All Crops →</div>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
-            <div class="health-ring">
-              <svg viewBox="0 0 110 110" width="110" height="110">
-                <circle class="health-ring-track" cx="55" cy="55" r="46"/>
-                <circle class="health-ring-fill" cx="55" cy="55" r="46" id="health-ring-svg"
-                  stroke="url(#greenGrad)"
-                  stroke-dasharray="289"
-                  stroke-dashoffset="37"/>
-                <defs>
-                  <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="#5cc76f"/>
-                    <stop offset="100%" stop-color="#2d8a3e"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="health-ring-label">
-                <div class="health-ring-val" style="color:var(--green-300)">87%</div>
-                <div class="health-ring-sub">Health</div>
-              </div>
-            </div>
-          </div>
-          <div class="crop-item">
-            <div class="crop-dot" style="background:#5cc76f"></div>
-            <div class="crop-name">Maize</div>
-            <div class="crop-bar-wrap"><div class="crop-bar-track"><div class="crop-bar-fill" style="width:78%;background:#5cc76f"></div></div></div>
-            <div class="crop-pct" style="color:#5cc76f">78%</div>
-            <div class="crop-area">82 ha</div>
-          </div>
-          <div class="crop-item">
-            <div class="crop-dot" style="background:#f59e0b"></div>
-            <div class="crop-name">Cassava</div>
-            <div class="crop-bar-wrap"><div class="crop-bar-track"><div class="crop-bar-fill" style="width:91%;background:#f59e0b"></div></div></div>
-            <div class="crop-pct" style="color:#f59e0b">91%</div>
-            <div class="crop-area">56 ha</div>
-          </div>
-          <div class="crop-item">
-            <div class="crop-dot" style="background:#38bdf8"></div>
-            <div class="crop-name">Sorghum</div>
-            <div class="crop-bar-wrap"><div class="crop-bar-track"><div class="crop-bar-fill" style="width:65%;background:#38bdf8"></div></div></div>
-            <div class="crop-pct" style="color:#38bdf8">65%</div>
-            <div class="crop-area">38 ha</div>
-          </div>
-          <div class="crop-item">
-            <div class="crop-dot" style="background:#f87171"></div>
-            <div class="crop-name">Cowpea</div>
-            <div class="crop-bar-wrap"><div class="crop-bar-track"><div class="crop-bar-fill" style="width:84%;background:#f87171"></div></div></div>
-            <div class="crop-pct" style="color:#f87171">84%</div>
-            <div class="crop-area">26 ha</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Charts and Timeline -->
-      <div class="grid-2 mb-24" style="grid-template-columns:1fr 1fr">
-        <!-- Yield Chart -->
-        <div class="glass-card chart-area">
-          <div class="section-header">
-            <div class="section-title">Monthly Yield (tonnes)</div>
-            <div style="display:flex;gap:8px;">
-              <span style="font-size:11px;color:var(--green-300);font-weight:600">2026</span>
-            </div>
-          </div>
-          <div class="bar-chart">
-            <div class="bar-col"><div class="bar" data-val="4.2t" style="height:48%;background:rgba(92,199,111,0.3)"></div><span class="bar-label">Jan</span></div>
-            <div class="bar-col"><div class="bar" data-val="5.8t" style="height:66%;background:rgba(92,199,111,0.35)"></div><span class="bar-label">Feb</span></div>
-            <div class="bar-col"><div class="bar" data-val="6.1t" style="height:70%;background:rgba(92,199,111,0.4)"></div><span class="bar-label">Mar</span></div>
-            <div class="bar-col"><div class="bar" data-val="7.4t" style="height:84%;background:rgba(92,199,111,0.5)"></div><span class="bar-label">Apr</span></div>
-            <div class="bar-col"><div class="bar" data-val="8.2t" style="height:94%;background:linear-gradient(180deg,#5cc76f,#2d8a3e);box-shadow:0 0 18px rgba(92,199,111,0.4)"></div><span class="bar-label">May</span></div>
-            <div class="bar-col"><div class="bar" data-val="—" style="height:18%;background:rgba(255,255,255,0.06);border:1px dashed rgba(255,255,255,0.15)"></div><span class="bar-label">Jun</span></div>
-            <div class="bar-col"><div class="bar" data-val="—" style="height:14%;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.1)"></div><span class="bar-label">Jul</span></div>
-          </div>
-        </div>
-
-        <!-- Activity Timeline -->
-        <div class="glass-card" style="padding:24px">
-          <div class="section-header mb-16">
-            <div class="section-title">Today's Activity</div>
-            <div class="section-link">View All</div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-left">
-              <div class="activity-dot" style="background:rgba(92,199,111,0.2)">💧</div>
-              <div class="activity-line"></div>
-            </div>
-            <div class="activity-body">
-              <div class="activity-title">Irrigation Zone A Complete</div>
-              <div class="activity-desc">28.7% water used · 4 zones activated</div>
-              <div class="activity-time">6:30 AM</div>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-left">
-              <div class="activity-dot" style="background:rgba(56,189,248,0.2)">🚁</div>
-              <div class="activity-line"></div>
-            </div>
-            <div class="activity-body">
-              <div class="activity-title">Drone Survey Flight #3</div>
-              <div class="activity-desc">Field B-7 inspected · No anomalies</div>
-              <div class="activity-time">9:15 AM</div>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-left">
-              <div class="activity-dot" style="background:rgba(248,113,113,0.2)">⚠️</div>
-              <div class="activity-line"></div>
-            </div>
-            <div class="activity-body">
-              <div class="activity-title">AI Alert: Leaf Blight Detected</div>
-              <div class="activity-desc">Cassava Field C-3 · Treatment recommended</div>
-              <div class="activity-time">11:02 AM</div>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-left">
-              <div class="activity-dot" style="background:rgba(245,158,11,0.2)">👷</div>
-            </div>
-            <div class="activity-body">
-              <div class="activity-title">Worker Task: Fertilizer Application</div>
-              <div class="activity-desc">4 workers assigned · Field D</div>
-              <div class="activity-time">2:00 PM (Scheduled)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /page-dashboard -->
-
-    <!-- ========== PAGE: WEATHER ========== -->
-    <div class="content page-enter" id="page-weather">
-      <div class="grid-2 mb-20" style="grid-template-columns:1.5fr 1fr">
-        <div class="glass-card weather-card">
-          <div class="section-header mb-20">
-            <div class="section-title">Weather Intelligence</div>
-            <div class="hero-tag" style="font-size:11px;padding:4px 10px"><div class="pulse-dot"></div> Live</div>
-          </div>
-          <div class="weather-main">
-            <div>
-              <div class="weather-temp">30<span class="weather-deg">°c</span></div>
-              <div class="weather-condition">☁️ Partly Cloudy</div>
-              <div class="weather-loc">📍 Kogi State, Nigeria</div>
-            </div>
-          </div>
-          <div class="weather-meta">
-            <div class="weather-meta-item">💧 68% Humidity</div>
-            <div class="weather-meta-item">💨 12 km/h Wind</div>
-            <div class="weather-meta-item">👁 8 km Visibility</div>
-            <div class="weather-meta-item">🌡 UV Index: 7</div>
-          </div>
-          <div class="weather-forecast mt-20" style="margin-top:20px">
-            <div class="forecast-day today"><div class="forecast-day-name">Today</div><div class="forecast-day-icon">⛅</div><div class="forecast-day-temp">30°</div></div>
-            <div class="forecast-day"><div class="forecast-day-name">Wed</div><div class="forecast-day-icon">🌧</div><div class="forecast-day-temp">25°</div></div>
-            <div class="forecast-day"><div class="forecast-day-name">Thu</div><div class="forecast-day-icon">🌩</div><div class="forecast-day-temp">22°</div></div>
-            <div class="forecast-day"><div class="forecast-day-name">Fri</div><div class="forecast-day-icon">🌤</div><div class="forecast-day-temp">28°</div></div>
-            <div class="forecast-day"><div class="forecast-day-name">Sat</div><div class="forecast-day-icon">☀️</div><div class="forecast-day-temp">32°</div></div>
-            <div class="forecast-day"><div class="forecast-day-name">Sun</div><div class="forecast-day-icon">☀️</div><div class="forecast-day-temp">33°</div></div>
-            <div class="forecast-day"><div class="forecast-day-name">Mon</div><div class="forecast-day-icon">⛅</div><div class="forecast-day-temp">29°</div></div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="glass-card" style="padding:24px">
-            <div class="section-title mb-12">Soil Conditions</div>
-            <div class="soil-row">
-              <div class="soil-metric"><div class="soil-metric-label">Soil Moisture</div><div class="soil-metric-val" style="color:var(--sky-400)">42<span class="soil-metric-unit">%</span></div></div>
-              <div class="soil-metric"><div class="soil-metric-label">Soil Temp</div><div class="soil-metric-val" style="color:var(--amber-300)">18<span class="soil-metric-unit">°C</span></div></div>
-              <div class="soil-metric"><div class="soil-metric-label">pH Level</div><div class="soil-metric-val" style="color:var(--green-300)">6.8</div></div>
-              <div class="soil-metric"><div class="soil-metric-label">NPK Score</div><div class="soil-metric-val" style="color:#a78bfa">B+</div></div>
-            </div>
-          </div>
-          <div class="glass-card" style="padding:24px;flex:1">
-            <div class="section-title mb-12">⚠️ Weather Alerts</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <div style="padding:12px;border-radius:10px;background:rgba(248,113,113,0.1);border-left:3px solid var(--red-400)">
-                <div style="font-size:13px;font-weight:600;margin-bottom:3px;color:var(--red-400)">Heavy Rain Warning</div>
-                <div class="text-xs text-muted">Wed–Thu: 80mm expected. Delay spraying.</div>
-              </div>
-              <div style="padding:12px;border-radius:10px;background:rgba(245,158,11,0.1);border-left:3px solid var(--amber-400)">
-                <div style="font-size:13px;font-weight:600;margin-bottom:3px;color:var(--amber-400)">High Wind Advisory</div>
-                <div class="text-xs text-muted">Thu: Gusts up to 35 km/h. Ground drones.</div>
-              </div>
-              <div style="padding:12px;border-radius:10px;background:rgba(92,199,111,0.1);border-left:3px solid var(--green-400)">
-                <div style="font-size:13px;font-weight:600;margin-bottom:3px;color:var(--green-300)">Ideal Planting Window</div>
-                <div class="text-xs text-muted">Sat–Mon: Low humidity & 28–33°C ideal.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="glass-card chart-area">
-        <div class="section-title mb-16">Rain Probability — Next 7 Days (%)</div>
-        <div class="bar-chart">
-          <div class="bar-col"><div class="bar" data-val="10%" style="height:10%;background:rgba(56,189,248,0.3)"></div><span class="bar-label">Tue</span></div>
-          <div class="bar-col"><div class="bar" data-val="80%" style="height:80%;background:linear-gradient(180deg,#38bdf8,#0369a1);box-shadow:0 0 14px rgba(56,189,248,0.3)"></div><span class="bar-label">Wed</span></div>
-          <div class="bar-col"><div class="bar" data-val="90%" style="height:90%;background:linear-gradient(180deg,#38bdf8,#0369a1);box-shadow:0 0 14px rgba(56,189,248,0.3)"></div><span class="bar-label">Thu</span></div>
-          <div class="bar-col"><div class="bar" data-val="20%" style="height:20%;background:rgba(56,189,248,0.25)"></div><span class="bar-label">Fri</span></div>
-          <div class="bar-col"><div class="bar" data-val="5%" style="height:5%;background:rgba(56,189,248,0.2)"></div><span class="bar-label">Sat</span></div>
-          <div class="bar-col"><div class="bar" data-val="5%" style="height:5%;background:rgba(56,189,248,0.2)"></div><span class="bar-label">Sun</span></div>
-          <div class="bar-col"><div class="bar" data-val="30%" style="height:30%;background:rgba(56,189,248,0.3)"></div><span class="bar-label">Mon</span></div>
-        </div>
-      </div>
-    </div><!-- /weather -->
-
-    <!-- ========== PAGE: AI CROP DETECTION ========== -->
-    <div class="content page-enter" id="page-ai-crop">
-      <div class="grid-2">
-        <div>
-          <div class="upload-zone glass-card mb-20" id="upload-zone" onclick="simulateScan()">
-            <div class="upload-icon">📸</div>
-            <div class="upload-title">Scan or Upload Crop Image</div>
-            <div class="upload-sub">Drag & drop or click to upload · Supports JPG, PNG, HEIC</div>
-            <div style="margin-top:20px;display:flex;gap:12px;justify-content:center">
-              <button style="padding:10px 20px;border-radius:12px;background:var(--green-500);border:none;color:#fff;font-family:var(--font-body);font-weight:600;cursor:pointer;font-size:13px">📷 Camera Scan</button>
-              <button style="padding:10px 20px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#fff;font-family:var(--font-body);font-weight:600;cursor:pointer;font-size:13px">📁 Upload File</button>
-            </div>
-          </div>
-
-          <!-- AI Result -->
-          <div class="glass-card ai-result" id="ai-result" style="display:none">
-            <div class="ai-result-header">
-              <div class="ai-result-icon">🍂</div>
-              <div>
-                <div class="ai-result-title">Leaf Blight Detected</div>
-                <div class="ai-result-sub">Cassava · Field C-3</div>
-              </div>
-            </div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px">AI Confidence</div>
-            <div style="display:flex;align-items:center;gap:12px">
-              <div class="confidence-bar" style="flex:1"><div class="confidence-fill" style="width:94%"></div></div>
-              <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--green-300)">94%</div>
-            </div>
-            <div style="margin-top:20px;font-size:13px;font-weight:600;margin-bottom:10px">Recommended Treatments</div>
-            <div class="treatment-card">
-              <div class="treatment-title">🌿 Organic: Neem Oil Spray</div>
-              <div class="treatment-desc">Apply 2% neem oil solution every 7 days for 3 weeks. Effective for early-stage blight.</div>
-            </div>
-            <div class="treatment-card">
-              <div class="treatment-title">🧪 Chemical: Mancozeb Fungicide</div>
-              <div class="treatment-desc">Apply 2g/litre at 14-day intervals. Wear PPE. Do not apply within 7 days of rain.</div>
-            </div>
-            <div class="treatment-card">
-              <div class="treatment-title">🗑 Remove Infected Leaves</div>
-              <div class="treatment-desc">Prune and burn affected foliage to prevent spread to neighbouring plants.</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="glass-card" style="padding:24px">
-            <div class="section-title mb-16">Recent Scans</div>
-            <div style="display:flex;flex-direction:column;gap:12px">
-              <div style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04)">
-                <div style="width:44px;height:44px;border-radius:10px;background:rgba(248,113,113,0.15);display:flex;align-items:center;justify-content:center;font-size:20px">🍂</div>
-                <div style="flex:1"><div style="font-size:14px;font-weight:600">Leaf Blight</div><div class="text-xs text-muted">Cassava · 11:02 AM Today</div></div>
-                <span class="badge badge-red">94%</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04)">
-                <div style="width:44px;height:44px;border-radius:10px;background:rgba(92,199,111,0.15);display:flex;align-items:center;justify-content:center;font-size:20px">✅</div>
-                <div style="flex:1"><div style="font-size:14px;font-weight:600">Healthy — No Issues</div><div class="text-xs text-muted">Maize · Yesterday 4:30 PM</div></div>
-                <span class="badge badge-green">98%</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04)">
-                <div style="width:44px;height:44px;border-radius:10px;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;font-size:20px">🐛</div>
-                <div style="flex:1"><div style="font-size:14px;font-weight:600">Aphid Infestation</div><div class="text-xs text-muted">Cowpea · Mon 9:00 AM</div></div>
-                <span class="badge badge-amber">87%</span>
-              </div>
-            </div>
-          </div>
-          <div class="glass-card" style="padding:24px;flex:1">
-            <div class="section-title mb-12">AI Detection Capabilities</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font-size:18px">🦠</span> 120+ Crop Diseases</div>
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font-size:18px">🐛</span> 80+ Pest Species</div>
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font-size:18px">💊</span> Treatment Database</div>
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font-size:18px">🌍</span> Multi-language Support</div>
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font-size:18px">📡</span> Works Offline</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div><!-- /ai-crop -->
-
-    <!-- ========== PAGE: IRRIGATION ========== -->
-    <div class="content page-enter" id="page-irrigation">
-      <div class="grid-4 mb-20">
-        <div class="glass-card stat-card"><div class="stat-icon">💧</div><div class="stat-label">Water Usage Today</div><div class="stat-value" style="color:var(--sky-400)">28.7<span style="font-size:16px;opacity:.5">%</span></div><div class="stat-trend up" style="color:var(--sky-400)">↓ 12% less than avg</div></div>
-        <div class="glass-card stat-card"><div class="stat-icon">🌊</div><div class="stat-label">Tank Level</div><div class="stat-value">72<span style="font-size:16px;opacity:.5">%</span></div><div class="stat-trend up">1,440 litres</div></div>
-        <div class="glass-card stat-card"><div class="stat-icon">🗓</div><div class="stat-label">Next Schedule</div><div class="stat-value" style="font-size:22px">6:00 AM</div><div class="stat-trend up">Zone B · Tomorrow</div></div>
-        <div class="glass-card stat-card"><div class="stat-icon">⚡</div><div class="stat-label">System Status</div><div class="stat-value" style="font-size:22px;color:var(--green-300)">Online</div><div class="stat-trend up">All zones OK</div></div>
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="content-panel active">
+      <div class="grid-4">
+        <div class="glass-card stat-card"><span class="stat-value">244</span><span style="font-size:14px"> ha</span><div>Total active area</div><span class="badge">↑12%</span></div>
+        <div class="glass-card stat-card"><span class="stat-value" style="color:#5cc76f">87%</span><div>Crop health score</div><span class="badge">+3% weekly</span></div>
+        <div class="glass-card stat-card"><span class="stat-value">8.2</span><div>Yield forecast (t/ha)</div><span class="badge">above avg</span></div>
+        <div class="glass-card stat-card"><span class="stat-value">$142k</span><div>Profit projection</div><span class="badge">↑18%</span></div>
       </div>
       <div class="grid-2">
-        <div class="glass-card" style="padding:24px">
-          <div class="section-title mb-16">Irrigation Zones</div>
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div class="irrigation-zone">
-              <div class="irrigation-zone-header"><div class="irrigation-zone-name">🌿 Zone A — Maize Field</div><label class="toggle-switch"><input type="checkbox" checked><div class="toggle-slider"></div></label></div>
-              <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Moisture: 62% · Last run: 6:30 AM</div>
-              <div class="water-level"><div class="water-level-fill" style="height:72%;background:linear-gradient(0deg,rgba(56,189,248,0.6),rgba(56,189,248,0.2))"></div><div class="water-level-label" style="color:var(--sky-400)">72%</div></div>
-            </div>
-            <div class="irrigation-zone">
-              <div class="irrigation-zone-header"><div class="irrigation-zone-name">🍂 Zone B — Cassava</div><label class="toggle-switch"><input type="checkbox"><div class="toggle-slider"></div></label></div>
-              <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Moisture: 38% · Next: 6:00 AM tomorrow</div>
-              <div class="water-level"><div class="water-level-fill" style="height:38%;background:linear-gradient(0deg,rgba(245,158,11,0.6),rgba(245,158,11,0.2))"></div><div class="water-level-label" style="color:var(--amber-400)">38%</div></div>
-            </div>
-            <div class="irrigation-zone">
-              <div class="irrigation-zone-header"><div class="irrigation-zone-name">🌾 Zone C — Sorghum</div><label class="toggle-switch"><input type="checkbox" checked><div class="toggle-slider"></div></label></div>
-              <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Moisture: 80% · Optimal range</div>
-              <div class="water-level"><div class="water-level-fill" style="height:80%;background:linear-gradient(0deg,rgba(92,199,111,0.6),rgba(92,199,111,0.2))"></div><div class="water-level-label" style="color:var(--green-300)">80%</div></div>
-            </div>
-          </div>
-        </div>
-        <div class="glass-card chart-area">
-          <div class="section-title mb-16">Water Usage — This Week (kL)</div>
-          <div class="bar-chart">
-            <div class="bar-col"><div class="bar" data-val="14.2kL" style="height:55%;background:rgba(56,189,248,0.3)"></div><span class="bar-label">Mon</span></div>
-            <div class="bar-col"><div class="bar" data-val="12.8kL" style="height:49%;background:rgba(56,189,248,0.3)"></div><span class="bar-label">Tue</span></div>
-            <div class="bar-col"><div class="bar" data-val="18.3kL" style="height:70%;background:rgba(56,189,248,0.3)"></div><span class="bar-label">Wed</span></div>
-            <div class="bar-col"><div class="bar" data-val="11.1kL" style="height:43%;background:rgba(56,189,248,0.3)"></div><span class="bar-label">Thu</span></div>
-            <div class="bar-col"><div class="bar" data-val="7.4kL" style="height:28%;background:linear-gradient(180deg,#38bdf8,#0369a1);box-shadow:0 0 14px rgba(56,189,248,0.35)"></div><span class="bar-label">Fri</span></div>
-            <div class="bar-col"><div class="bar" data-val="—" style="height:8%;background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.1)"></div><span class="bar-label">Sat</span></div>
-            <div class="bar-col"><div class="bar" data-val="—" style="height:8%;background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.1)"></div><span class="bar-label">Sun</span></div>
-          </div>
-          <div style="margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06)">
-            <div style="font-size:13px;font-weight:600;margin-bottom:12px">AI Water Prediction</div>
-            <div style="padding:14px;border-radius:12px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.15)">
-              <div style="font-size:13px;line-height:1.6;color:rgba(255,255,255,0.7)">⚡ AI predicts <strong style="color:var(--sky-400)">18% less irrigation needed</strong> next week due to forecasted rainfall (Wed–Thu). Auto-schedule adjusted.</div>
-            </div>
-          </div>
-        </div>
+        <div class="glass-card"><div style="display:flex;justify-content:space-between"><h3>🌽 Field health distribution</h3></div><div style="margin-top:16px"><div>Maize<span style="float:right">78%</span><div style="background:#2a3a2e;height:6px;border-radius:4px;margin-top:6px"><div style="width:78%;height:6px;background:#5cc76f;border-radius:4px"></div></div></div><div class="mt-3">Cassava<span style="float:right">91%</span><div style="background:#2a3a2e;height:6px;border-radius:4px;margin-top:6px"><div style="width:91%;height:6px;background:#f59e0b;border-radius:4px"></div></div></div><div>Sorghum<span style="float:right">65%</span><div style="background:#2a3a2e;height:6px;border-radius:4px;margin-top:6px"><div style="width:65%;height:6px;background:#38bdf8;border-radius:4px"></div></div></div></div></div>
+        <div class="glass-card"><h3>⏱️ Live activity</h3><div style="margin-top:12px">✅ Irrigation Zone A completed (6:30 AM)<br>🚁 Drone survey #3 finished<br>⚠️ AI alert: Leaf blight detected - cassava field</div></div>
       </div>
-    </div><!-- /irrigation -->
+    </div>
 
-    <!-- ========== PAGE: DRONE ========== -->
-    <div class="content page-enter" id="page-drone">
-      <div class="mb-20">
-        <div class="drone-map glass-card">
-          <div class="drone-grid"></div>
-          <div style="position:absolute;top:18%;left:15%;width:25%;height:35%;border:2px solid rgba(92,199,111,0.4);border-radius:8px;background:rgba(92,199,111,0.06)">
-            <span style="position:absolute;top:8px;left:8px;font-size:11px;font-weight:600;color:var(--green-300);background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:4px">Field A</span>
-          </div>
-          <div style="position:absolute;top:25%;left:45%;width:30%;height:40%;border:2px solid rgba(245,158,11,0.4);border-radius:8px;background:rgba(245,158,11,0.04)">
-            <span style="position:absolute;top:8px;left:8px;font-size:11px;font-weight:600;color:var(--amber-400);background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:4px">Field B</span>
-          </div>
-          <div style="position:absolute;top:55%;left:20%;width:20%;height:25%;border:2px solid rgba(56,189,248,0.4);border-radius:8px;background:rgba(56,189,248,0.04)">
-            <span style="position:absolute;top:8px;left:8px;font-size:11px;font-weight:600;color:var(--sky-400);background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:4px">Field C</span>
-          </div>
-          <div class="drone-marker" style="top:22%;left:25%">
-            <div class="drone-pulse"></div>
-          </div>
-          <div class="drone-marker" style="top:38%;left:58%;animation-delay:1s"></div>
-          <div class="drone-marker" style="top:60%;left:30%;animation-delay:2s"></div>
-          <div style="position:absolute;top:16px;left:16px;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px">🧭</div>
-          <div class="drone-info-overlay">
-            <div style="display:flex;align-items:center;gap:8px"><div class="drone-status-dot"></div><span style="font-size:12px;font-weight:600;color:var(--green-300)">3 Drones Active</span></div>
-            <div class="drone-stat"><div class="drone-stat-val">142 ha</div><div class="drone-stat-lbl">Area Covered</div></div>
-            <div class="drone-stat"><div class="drone-stat-val" style="color:var(--sky-400)">38 km/h</div><div class="drone-stat-lbl">Avg Speed</div></div>
-            <div class="drone-stat"><div class="drone-stat-val" style="color:var(--amber-300)">72%</div><div class="drone-stat-lbl">Battery</div></div>
-            <div class="drone-stat"><div class="drone-stat-val">1,240m</div><div class="drone-stat-lbl">Altitude</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="grid-3">
-        <div class="glass-card" style="padding:22px">
-          <div style="font-size:28px;margin-bottom:12px">🚁</div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:4px">Drone Alpha-1</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">Inspecting Field A · Maize</div>
-          <div style="display:flex;gap:10px">
-            <div style="flex:1;padding:8px;border-radius:8px;background:rgba(92,199,111,0.1);text-align:center"><div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--green-300)">78%</div><div style="font-size:10px;color:rgba(255,255,255,0.4)">Battery</div></div>
-            <div style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,0.04);text-align:center"><div style="font-family:var(--font-display);font-size:16px;font-weight:700">2.4km</div><div style="font-size:10px;color:rgba(255,255,255,0.4)">Distance</div></div>
-          </div>
-        </div>
-        <div class="glass-card" style="padding:22px">
-          <div style="font-size:28px;margin-bottom:12px">🚁</div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:4px">Drone Beta-2</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">Mapping Field B · Cassava</div>
-          <div style="display:flex;gap:10px">
-            <div style="flex:1;padding:8px;border-radius:8px;background:rgba(245,158,11,0.1);text-align:center"><div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--amber-400)">65%</div><div style="font-size:10px;color:rgba(255,255,255,0.4)">Battery</div></div>
-            <div style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,0.04);text-align:center"><div style="font-family:var(--font-display);font-size:16px;font-weight:700">1.8km</div><div style="font-size:10px;color:rgba(255,255,255,0.4)">Distance</div></div>
-          </div>
-        </div>
-        <div class="glass-card" style="padding:22px">
-          <div style="font-size:28px;margin-bottom:12px">🚁</div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:4px">Drone Gamma-3</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">Perimeter Scan · Field C</div>
-          <div style="display:flex;gap:10px">
-            <div style="flex:1;padding:8px;border-radius:8px;background:rgba(56,189,248,0.1);text-align:center"><div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--sky-400)">91%</div><div style="font-size:10px;color:rgba(255,255,255,0.4)">Battery</div></div>
-            <div style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,0.04);text-align:center"><div style="font-family:var(--font-display);font-size:16px;font-weight:700">3.1km</div><div style="font-size:10px;color:rgba(255,255,255,0.4)">Distance</div></div>
-          </div>
-        </div>
-      </div>
-    </div><!-- /drone -->
+    <!-- WEATHER -->
+    <div id="weather" class="content-panel"><div class="glass-card"><div style="display:flex;gap:24px;flex-wrap:wrap"><div><span style="font-size:54px;font-weight:800">30°C</span><div>Partly cloudy</div><div>Kogi, Nigeria</div></div><div><div>💧 Humidity 68%</div><div>💨 Wind 12 km/h</div><div>🌱 Soil moisture 42%</div></div></div><div style="margin-top:24px"><div class="badge">⚠️ Heavy rain warning Wed-Thu: 80mm expected</div></div></div></div>
 
-    <!-- ========== PAGE: FARM MANAGEMENT ========== -->
-    <div class="content page-enter" id="page-farms">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:20px;gap:10px">
-        <button style="padding:10px 20px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#fff;font-family:var(--font-body);font-weight:600;font-size:13px;cursor:pointer">+ Add Worker</button>
-        <button style="padding:10px 20px;border-radius:12px;background:var(--green-500);border:none;color:#fff;font-family:var(--font-body);font-weight:700;font-size:13px;cursor:pointer">+ Add Farm</button>
-      </div>
-      <div class="grid-3 mb-24">
-        <div class="glass-card farm-card-mini">
-          <div class="farm-map-thumb"><div class="farm-map-thumb-bg"></div><div class="farm-map-thumb-grid"></div><span style="position:relative;z-index:2">🌽</span></div>
-          <div class="farm-name">Okafor North Farm</div>
-          <div class="farm-location">📍 Kogi State, Nigeria</div>
-          <div class="farm-stats-row">
-            <div class="farm-stat"><div class="farm-stat-val">144ha</div><div class="farm-stat-lbl">Area</div></div>
-            <div class="farm-stat"><div class="farm-stat-val" style="color:var(--green-300)">92%</div><div class="farm-stat-lbl">Health</div></div>
-            <div class="farm-stat"><div class="farm-stat-val">4</div><div class="farm-stat-lbl">Crops</div></div>
-          </div>
-        </div>
-        <div class="glass-card farm-card-mini">
-          <div class="farm-map-thumb" style="font-size:32px"><div class="farm-map-thumb-bg" style="background:linear-gradient(135deg,#1a3a2d,#2d5c44)"></div><div class="farm-map-thumb-grid"></div><span style="position:relative;z-index:2">🌿</span></div>
-          <div class="farm-name">River Side Plot</div>
-          <div class="farm-location">📍 Benue State, Nigeria</div>
-          <div class="farm-stats-row">
-            <div class="farm-stat"><div class="farm-stat-val">68ha</div><div class="farm-stat-lbl">Area</div></div>
-            <div class="farm-stat"><div class="farm-stat-val" style="color:var(--amber-300)">76%</div><div class="farm-stat-lbl">Health</div></div>
-            <div class="farm-stat"><div class="farm-stat-val">2</div><div class="farm-stat-lbl">Crops</div></div>
-          </div>
-        </div>
-        <div class="glass-card farm-card-mini" style="opacity:0.5;border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:220px;cursor:pointer" onclick="alert('Add new farm coming soon!')">
-          <div style="text-align:center;color:rgba(255,255,255,0.4)">
-            <div style="font-size:36px;margin-bottom:10px">＋</div>
-            <div style="font-size:14px;font-weight:600">Add New Farm</div>
-          </div>
-        </div>
-      </div>
-      <div class="glass-card" style="padding:24px">
-        <div class="section-header mb-16"><div class="section-title">Workers & Task Assignment</div><button style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#fff;font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer">+ Assign Task</button></div>
-        <table class="report-table">
-          <thead><tr><th>Worker</th><th>Role</th><th>Assigned Field</th><th>Task</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td>👷 Emeka Nwosu</td><td>Field Technician</td><td>Field A — Maize</td><td>Pesticide Application</td><td><span class="badge badge-green">In Progress</span></td></tr>
-            <tr><td>👷 Aisha Yusuf</td><td>Irrigation Specialist</td><td>Field C — Sorghum</td><td>Drip Line Inspection</td><td><span class="badge badge-amber">Pending</span></td></tr>
-            <tr><td>👷 Chidi Obi</td><td>Drone Operator</td><td>Field B — Cassava</td><td>Drone Survey</td><td><span class="badge badge-green">Complete</span></td></tr>
-            <tr><td>👷 Fatima Bello</td><td>Harvest Manager</td><td>All Fields</td><td>Harvest Planning</td><td><span class="badge badge-amber">Scheduled</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div><!-- /farms -->
+    <!-- AI CROP DETECTION -->
+    <div id="ai-crop" class="content-panel"><div class="glass-card"><h3>📸 Smart Scan - Disease detection</h3><div style="border:2px dashed rgba(92,199,111,0.3);border-radius:24px;padding:40px;text-align:center;margin:20px 0;cursor:pointer" onclick="simulateAIScan()"><span style="font-size:48px">🌿</span><br>Click to simulate AI crop scan</div><div id="scanResult" style="display:none"><div style="background:rgba(248,113,113,0.1);border-left:4px solid #f87171;padding:16px;border-radius:16px"><strong>⚠️ Leaf Blight detected</strong><br>Confidence: 94%<br>Treatment: Apply neem oil or Mancozeb fungicide. Remove affected leaves.</div></div></div></div>
 
-    <!-- ========== PAGE: MARKETPLACE ========== -->
-    <div class="content page-enter" id="page-marketplace">
-      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-        <button style="padding:8px 16px;border-radius:20px;background:var(--green-500);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer">All</button>
-        <button style="padding:8px 16px;border-radius:20px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer">🌱 Seeds</button>
-        <button style="padding:8px 16px;border-radius:20px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer">🧪 Fertilizer</button>
-        <button style="padding:8px 16px;border-radius:20px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer">🔧 Tools</button>
-        <button style="padding:8px 16px;border-radius:20px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;cursor:pointer">🚜 Equipment</button>
-      </div>
-      <div class="grid-auto">
-        <div class="glass-card product-card">
-          <div class="product-img" style="background:rgba(92,199,111,0.08)">🌽</div>
-          <div class="product-name">Hybrid Maize Seed DK8031</div>
-          <div class="product-cat">Seeds · Premium</div>
-          <div style="display:flex;align-items:baseline;gap:0">
-            <span class="product-price">$48.00</span><span class="product-old-price">$62.00</span>
-          </div>
-          <div class="product-footer"><span class="rating">⭐ 4.8 (124)</span><button class="add-btn">+</button></div>
-        </div>
-        <div class="glass-card product-card">
-          <div class="product-img" style="background:rgba(56,189,248,0.08)">💧</div>
-          <div class="product-name">Drip Irrigation Kit 50m</div>
-          <div class="product-cat">Equipment · Irrigation</div>
-          <span class="product-price">$210.00</span>
-          <div class="product-footer"><span class="rating">⭐ 4.6 (87)</span><button class="add-btn">+</button></div>
-        </div>
-        <div class="glass-card product-card">
-          <div class="product-img" style="background:rgba(245,158,11,0.08)">🧪</div>
-          <div class="product-name">NPK Fertilizer 25kg Bag</div>
-          <div class="product-cat">Fertilizer · Granular</div>
-          <div style="display:flex;align-items:baseline;">
-            <span class="product-price">$32.00</span><span class="product-old-price">$40.00</span>
-          </div>
-          <div class="product-footer"><span class="rating">⭐ 4.9 (213)</span><button class="add-btn">+</button></div>
-        </div>
-        <div class="glass-card product-card">
-          <div class="product-img" style="background:rgba(248,113,113,0.08)">🚜</div>
-          <div class="product-name">Mini Tractor Rental</div>
-          <div class="product-cat">Equipment · Rental</div>
-          <span class="product-price">$85<span style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.4)">/day</span></span>
-          <div class="product-footer"><span class="rating">⭐ 4.7 (56)</span><button class="add-btn">+</button></div>
-        </div>
-        <div class="glass-card product-card">
-          <div class="product-img" style="background:rgba(167,139,250,0.08)">🌿</div>
-          <div class="product-name">Neem Oil Pesticide 5L</div>
-          <div class="product-cat">Pesticide · Organic</div>
-          <div style="display:flex;align-items:baseline;">
-            <span class="product-price">$22.50</span><span class="product-old-price">$28.00</span>
-          </div>
-          <div class="product-footer"><span class="rating">⭐ 4.5 (98)</span><button class="add-btn">+</button></div>
-        </div>
-        <div class="glass-card product-card">
-          <div class="product-img" style="background:rgba(92,199,111,0.06)">🌱</div>
-          <div class="product-name">Cowpea Seed 10kg Pack</div>
-          <div class="product-cat">Seeds · Open Pollinated</div>
-          <span class="product-price">$18.00</span>
-          <div class="product-footer"><span class="rating">⭐ 4.4 (44)</span><button class="add-btn">+</button></div>
-        </div>
-      </div>
-    </div><!-- /marketplace -->
+    <!-- IRRIGATION -->
+    <div id="irrigation" class="content-panel"><div class="glass-card"><h3>💧 Smart irrigation zones</h3><div class="irrigation-zone" style="margin:16px 0"><div style="display:flex;justify-content:space-between"><span><strong>Zone A - Maize</strong><br>Moisture 42%</span><div class="toggle-switch" id="toggleA" onclick="toggleIrrigation('toggleA','statusA')"><div class="toggle-knob"></div></div></div><div id="statusA" class="badge" style="margin-top:8px">● idle</div></div><div class="irrigation-zone" style="margin:16px 0"><div style="display:flex;justify-content:space-between"><span><strong>Zone B - Cassava</strong><br>Moisture 68%</span><div class="toggle-switch active" id="toggleB" onclick="toggleIrrigation('toggleB','statusB')"><div class="toggle-knob"></div></div></div><div id="statusB" class="badge" style="margin-top:8px">✅ active</div></div><div class="badge">📉 AI prediction: 18% less irrigation needed next week due to rainfall</div></div></div>
 
-    <!-- ========== PAGE: NOTIFICATIONS ========== -->
-    <div class="content page-enter" id="page-notifications">
-      <div class="grid-2" style="grid-template-columns:1.5fr 1fr">
-        <div class="glass-card" style="padding:24px">
-          <div class="section-header mb-16"><div class="section-title">All Notifications</div><span style="font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer">Mark all read</span></div>
-          <div class="notif-item">
-            <div class="notif-icon" style="background:rgba(248,113,113,0.15)">⚠️</div>
-            <div class="notif-body">
-              <div class="notif-title">Disease Alert: Leaf Blight Detected</div>
-              <div class="notif-desc">AI scan detected early-stage leaf blight in Cassava Field C-3. Immediate treatment recommended.</div>
-              <div class="notif-time">11:02 AM · Today</div>
-            </div>
-            <div class="notif-dot"></div>
-          </div>
-          <div class="notif-item">
-            <div class="notif-icon" style="background:rgba(56,189,248,0.15)">🌧</div>
-            <div class="notif-body">
-              <div class="notif-title">Heavy Rain Warning — Wednesday</div>
-              <div class="notif-desc">80mm of rain expected. Auto-irrigation for Wed has been cancelled. Drone flights paused.</div>
-              <div class="notif-time">9:30 AM · Today</div>
-            </div>
-            <div class="notif-dot"></div>
-          </div>
-          <div class="notif-item">
-            <div class="notif-icon" style="background:rgba(92,199,111,0.15)">🌾</div>
-            <div class="notif-body">
-              <div class="notif-title">Harvest Reminder — Maize Field A</div>
-              <div class="notif-desc">Optimal harvest window opens in 12 days. Schedule workers and transport now.</div>
-              <div class="notif-time">8:00 AM · Today</div>
-            </div>
-            <div class="notif-dot"></div>
-          </div>
-          <div class="notif-item">
-            <div class="notif-icon" style="background:rgba(245,158,11,0.15)">💧</div>
-            <div class="notif-body">
-              <div class="notif-title">Irrigation Task Completed — Zone A</div>
-              <div class="notif-desc">28.7% water used. All 4 sub-zones activated successfully. Next run: Tomorrow 6 AM.</div>
-              <div class="notif-time">6:45 AM · Today</div>
-            </div>
-            <div class="notif-dot" style="background:rgba(255,255,255,0.2)"></div>
-          </div>
-          <div class="notif-item">
-            <div class="notif-icon" style="background:rgba(92,199,111,0.15)">🚁</div>
-            <div class="notif-body">
-              <div class="notif-title">Drone Survey Complete — Field B</div>
-              <div class="notif-desc">Drone Beta-2 completed 1.8km survey. No anomalies detected. Report ready.</div>
-              <div class="notif-time">Yesterday · 4:12 PM</div>
-            </div>
-            <div class="notif-dot" style="background:rgba(255,255,255,0.2)"></div>
-          </div>
-        </div>
-        <div class="glass-card" style="padding:24px">
-          <div class="section-title mb-16">Notification Settings</div>
-          <div style="display:flex;flex-direction:column;gap:16px">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04)">
-              <div><div style="font-size:14px;font-weight:600">🦠 Disease Alerts</div><div class="text-xs text-muted">AI-detected crop diseases</div></div>
-              <label class="toggle-switch"><input type="checkbox" checked><div class="toggle-slider"></div></label>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04)">
-              <div><div style="font-size:14px;font-weight:600">🌧 Weather Alerts</div><div class="text-xs text-muted">Severe weather warnings</div></div>
-              <label class="toggle-switch"><input type="checkbox" checked><div class="toggle-slider"></div></label>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04)">
-              <div><div style="font-size:14px;font-weight:600">🌾 Harvest Reminders</div><div class="text-xs text-muted">Optimal harvest windows</div></div>
-              <label class="toggle-switch"><input type="checkbox" checked><div class="toggle-slider"></div></label>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04)">
-              <div><div style="font-size:14px;font-weight:600">💧 Irrigation Updates</div><div class="text-xs text-muted">Schedule & completion alerts</div></div>
-              <label class="toggle-switch"><input type="checkbox"><div class="toggle-slider"></div></label>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04)">
-              <div><div style="font-size:14px;font-weight:600">👷 Worker Tasks</div><div class="text-xs text-muted">Task assignments & completions</div></div>
-              <label class="toggle-switch"><input type="checkbox" checked><div class="toggle-slider"></div></label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div><!-- /notifications -->
+    <!-- DRONE MONITORING -->
+    <div id="drone" class="content-panel"><div class="glass-card"><h3>🚁 Live drone telemetry</h3><div style="background:#0a2a12;border-radius:24px;padding:24px;margin:16px 0;position:relative;min-height:200px"><div style="position:absolute;top:30%;left:25%;font-size:36px">🛸</div><div style="position:absolute;bottom:16px;left:16px;background:rgba(0,0,0,0.6);border-radius:12px;padding:6px 12px">3 active drones | coverage 142ha</div></div><div class="grid-2" style="margin-top:16px"><div>🔹 Alpha-1: 78% battery · surveying maize</div><div>🔹 Beta-2: 65% battery · mapping cassava</div></div></div></div>
 
-    <!-- ========== PAGE: REPORTS ========== -->
-    <div class="content page-enter" id="page-reports">
-      <div class="grid-4 mb-24">
-        <div class="glass-card stat-card"><div class="stat-icon">📦</div><div class="stat-label">Total Yield YTD</div><div class="stat-value" style="font-size:28px">38.7<span style="font-size:14px;opacity:.5">t</span></div><div class="stat-trend up">↑ 14% vs 2025</div></div>
-        <div class="glass-card stat-card"><div class="stat-icon">💰</div><div class="stat-label">Revenue YTD</div><div class="stat-value" style="font-size:28px;color:var(--green-300)">$84k</div><div class="stat-trend up">↑ 22% vs 2025</div></div>
-        <div class="glass-card stat-card"><div class="stat-icon">💸</div><div class="stat-label">Operating Cost</div><div class="stat-value" style="font-size:28px;color:var(--red-400)">$31k</div><div class="stat-trend down">↑ 8% vs 2025</div></div>
-        <div class="glass-card stat-card"><div class="stat-icon">📊</div><div class="stat-label">Net Profit YTD</div><div class="stat-value" style="font-size:28px;color:var(--sky-400)">$53k</div><div class="stat-trend up">↑ 31% vs 2025</div></div>
-      </div>
-      <div class="glass-card report-card mb-24">
-        <div class="report-header">
-          <div class="report-title">Monthly Farm Performance Report</div>
-          <div style="display:flex;gap:8px">
-            <button class="export-btn">📄 Export PDF</button>
-            <button class="export-btn">📊 Export Excel</button>
-            <button class="export-btn">📤 Share</button>
-          </div>
-        </div>
-        <table class="report-table">
-          <thead><tr><th>Month</th><th>Yield (t)</th><th>Revenue</th><th>Cost</th><th>Profit</th><th>Health Score</th><th>Status</th></tr></thead>
-          <tbody>
-            <tr><td>January 2026</td><td>4.2t</td><td>$12,400</td><td>$5,100</td><td>$7,300</td><td>82%</td><td><span class="badge badge-green">Good</span></td></tr>
-            <tr><td>February 2026</td><td>5.8t</td><td>$16,200</td><td>$6,200</td><td>$10,000</td><td>85%</td><td><span class="badge badge-green">Good</span></td></tr>
-            <tr><td>March 2026</td><td>6.1t</td><td>$18,500</td><td>$7,800</td><td>$10,700</td><td>88%</td><td><span class="badge badge-green">Excellent</span></td></tr>
-            <tr><td>April 2026</td><td>7.4t</td><td>$22,100</td><td>$7,300</td><td>$14,800</td><td>86%</td><td><span class="badge badge-green">Excellent</span></td></tr>
-            <tr><td>May 2026</td><td>8.2t</td><td>$15,200*</td><td>$4,800*</td><td>$10,400*</td><td>87%</td><td><span class="badge badge-amber">In Progress</span></td></tr>
-          </tbody>
-        </table>
-        <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:12px">* May figures are partial (month in progress)</div>
-      </div>
-    </div><!-- /reports -->
+    <!-- FARM MANAGEMENT -->
+    <div id="farms" class="content-panel"><div class="glass-card"><h3>🗺️ Registered farms</h3><div style="margin:12px 0"><div style="display:flex;justify-content:space-between;padding:12px;background:rgba(255,255,255,0.03);border-radius:16px"><div><strong>Okafor North Farm</strong><br>Kogi, 144 ha · health 92%</div><button class="badge" onclick="toast('Farm details opened')">Manage</button></div><div style="display:flex;justify-content:space-between;padding:12px;margin-top:10px;background:rgba(255,255,255,0.03);border-radius:16px"><div><strong>River Side Plot</strong><br>Benue, 68 ha</div><button class="badge" onclick="toast('View resources')">View</button></div></div><button class="btn-primary" style="width:auto;padding:10px 20px;margin-top:8px" onclick="toast('New farm wizard coming soon')">+ Add Farm</button></div></div>
 
-    <!-- ========== PAGE: AI ASSISTANT ========== -->
-    <div class="content page-enter" id="page-ai-assistant">
-      <div class="grid-2" style="grid-template-columns:1.5fr 1fr">
-        <div class="glass-card chat-container">
-          <div style="padding:20px 20px 0;border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:16px;display:flex;align-items:center;gap:12px">
-            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--green-400),var(--green-700));display:flex;align-items:center;justify-content:center;font-size:18px">🤖</div>
-            <div><div style="font-size:15px;font-weight:700">AgriVision AI Assistant</div><div style="font-size:11px;color:var(--green-300)">● Online · Agriculture Expert</div></div>
-          </div>
-          <div class="chat-messages" id="chat-messages">
-            <div class="chat-msg ai">
-              <div class="chat-avatar ai">🤖</div>
-              <div class="chat-bubble">Hello! 👋 I'm your AgriVision AI assistant. I can help you with crop disease diagnosis, irrigation advice, yield predictions, weather interpretation, and much more. What's on your mind today?</div>
-            </div>
-            <div class="chat-msg ai">
-              <div class="chat-avatar ai">🤖</div>
-              <div class="chat-bubble">⚠️ I noticed a leaf blight alert was triggered on <strong>Cassava Field C-3</strong> this morning. Would you like me to walk you through the recommended treatment protocol?</div>
-            </div>
-          </div>
-          <div class="chat-input-row">
-            <input class="chat-input" id="chat-input" type="text" placeholder="Ask about crops, weather, irrigation..." onkeydown="if(event.key==='Enter')sendChat()">
-            <button class="chat-send" onclick="sendChat()">➤</button>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:16px">
-          <div class="glass-card" style="padding:24px">
-            <div class="section-title mb-12">Quick Questions</div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <button onclick="askQuestion('What are the best fertilizers for maize?')" style="text-align:left;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s">🌽 Best fertilizers for maize?</button>
-              <button onclick="askQuestion('How do I treat leaf blight in cassava?')" style="text-align:left;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s">🍂 Treat leaf blight in cassava?</button>
-              <button onclick="askQuestion('When is the best time to harvest sorghum?')" style="text-align:left;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s">🌾 When to harvest sorghum?</button>
-              <button onclick="askQuestion('Optimal soil moisture for cowpea?')" style="text-align:left;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all .2s">💧 Optimal moisture for cowpea?</button>
-              <button onclick="askQuestion('How to improve yield per hectq
+    <!-- MARKETPLACE -->
+    <div id="market" class="content-panel"><div class="glass-card"><h3>🛒 Agri marketplace</h3><div class="grid-2" style="margin-top:20px"><div><div style="background:rgba(92,199,111,0.1);border-radius:16px;padding:16px">🌽 Hybrid maize seed<br>$48.00<span style="text-decoration:line-through;margin-left:8px;font-size:12px">$62</span><br><button class="badge" onclick="toast('Added to cart')">Add to cart</button></div></div><div><div style="background:rgba(92,199,111,0.1);border-radius:16px;padding:16px">💧 Drip irrigation kit 50m<br>$210.00<br><button class="badge" onclick="toast('Added to cart')">Add to cart</button></div></div><div><div style="background:rgba(92,199,111,0.1);border-radius:16px;padding:16px">🧪 NPK fertilizer 25kg<br>$32.00<br><button class="badge" onclick="toast('Added to cart')">Add to cart</button></div></div></div></div></div>
+
+    <!-- NOTIFICATIONS -->
+    <div id="notifications" class="content-panel"><div class="glass-card"><h3>🔔 Recent alerts</h3><div style="margin-top:16px">⚠️ Leaf blight detected - Field C-3 · 11:02 AM<br>🌧️ Heavy rain warning for Wednesday · 9:30 AM<br>🌾 Harvest reminder: Maize field ready in 12 days</div><div class="badge" style="margin-top:16px;cursor:pointer" onclick="toast('All notifications cleared')">Mark all read</div></div></div>
+
+    <!-- REPORTS -->
+    <div id="reports" class="content-panel"><div class="glass-card"><h3>📊 Yield performance 2026</h3><table style="width:100%;margin-top:16px;border-collapse:collapse"><tr style="border-bottom:1px solid rgba(255,255,255,0.1)"><th>Month</th><th>Yield(t)</th><th>Revenue</th></tr><tr><td>Jan</td><td>4.2</td><td>$12.4k</td></tr><tr><td>Feb</td><td>5.8</td><td>$16.2k</td></tr><tr><td>Mar</td><td>6.1</td><td>$18.5k</td></tr><tr><td>Apr</td><td>7.4</td><td>$22.1k</td></tr></table><button class="btn-primary" style="margin-top:20px;width:auto;padding:8px 16px" onclick="toast('Report exported as PDF')">📄 Export PDF</button></div></div>
+
+    <!-- AI ASSISTANT -->
+    <div id="assistant" class="content-panel"><div class="glass-card"><h3>🤖 AgriVision AI Assistant</h3><div id="chatbox" class="chat-messages"><div class="message ai-message">👋 Hello! I'm your farming AI. Ask me about crop diseases, irrigation, or yield predictions.</div></div><div style="display:flex;gap:8px"><input type="text" id="chatInput" placeholder="Ask anything..." style="flex:1;background:rgba(255,255,255,0.07);border:none;border-radius:30px;padding:12px 16px;color:white"><button class="btn-primary" style="width:auto;padding:0 20px" onclick="sendChatMessage()">Send</button></div></div></div>
+  </div>
+</div>
+
+<script>
+  // Global toast helper
+  function toast(msg) { const t = document.getElementById('toastMsg'); document.getElementById('toastText').innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+
+  // Authentication module
+  const auth = {
+    user: null,
+    init() { const saved = localStorage.getItem('agrivision_user'); if(saved) { this.user = JSON.parse(saved); this.showApp(); } },
+    login() { const email = document.getElementById('loginEmail').value; const pwd = document.getElementById('loginPass').value; if(email && pwd) { this.user = { name: email.split('@')[0], email }; localStorage.setItem('agrivision_user', JSON.stringify(this.user)); this.showApp(); toast(`Welcome ${this.user.name}`); } else toast('Enter credentials'); },
+    signup() { const name = document.getElementById('signupName').value; const email = document.getElementById('signupEmail').value; const pass = document.getElementById('signupPass').value; if(name && email && pass.length>=3) { this.user = { name, email }; localStorage.setItem('agrivision_user', JSON.stringify(this.user)); this.showApp(); toast(`Account created, ${name}`); } else toast('Valid name, email & password required'); },
+    demoLogin(demoEmail) { this.user = { name: 'James Okafor', email: demoEmail }; localStorage.setItem('agrivision_user', JSON.stringify(this.user)); this.showApp(); toast('Demo mode activated · James Okafor'); },
+    showApp() { document.getElementById('authContainer').classList.add('hidden'); document.getElementById('appWrapper').classList.add('active'); document.getElementById('userDisplayName').innerText = this.user?.name || 'Farmer'; document.getElementById('userAvatar').innerText = this.user?.name?.charAt(0).toUpperCase() || 'U'; },
+    logout() { localStorage.removeItem('agrivision_user'); this.user = null; document.getElementById('appWrapper').classList.remove('active'); document.getElementById('authContainer').classList.remove('hidden'); document.getElementById('loginFormContainer').style.display = 'block'; document.getElementById('signupFormContainer').style.display = 'none'; toast('Logged out'); },
+    showSignup() { document.getElementById('loginFormContainer').style.display = 'none'; document.getElementById('signupFormContainer').style.display = 'block'; },
+    showLogin() { document.getElementById('loginFormContainer').style.display = 'block'; document.getElementById('signupFormContainer').style.display = 'none'; }
+  };
+
+  // Page switching logic
+  const pages = ['dashboard','weather','ai-crop','irrigation','drone','farms','market','notifications','reports','assistant'];
+  function switchPage(pageId) {
+    pages.forEach(p => { document.getElementById(p).classList.remove('active'); });
+    document.getElementById(pageId).classList.add('active');
+    document.getElementById('currentPageTitle').innerText = pageId.replace('-',' ').replace(/\b\w/g,l=>l.toUpperCase());
+    // update nav active
+    document.querySelectorAll('.nav-item').forEach(btn => { btn.classList.remove('active'); if(btn.getAttribute('data-page') === pageId) btn.classList.add('active'); });
+  }
+  document.querySelectorAll('.nav-item').forEach(btn => { btn.addEventListener('click', (e) => { const page = btn.getAttribute('data-page'); if(page) switchPage(page); }); });
+
+  // AI crop detection simulation
+  window.simulateAIScan = () => {
+    const resultDiv = document.getElementById('scanResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `<div style="background:rgba(248,113,113,0.15);border-left:4px solid #f87171;padding:16px;border-radius:16px"><strong>🔬 AI Diagnosis: Early Leaf Blight</strong><br>Confidence: 94%<br>📋 Recommended: Apply organic neem oil every 7 days. Remove infected leaves. Risk: high humidity.</div>`;
+    toast('AI scan complete: disease detected');
+  };
+
+  // Irrigation toggles
+  window.toggleIrrigation = (toggleId, statusId) => {
+    const toggle = document.getElementById(toggleId); const statusSpan = document.getElementById(statusId);
+    toggle.classList.toggle('active'); const active = toggle.classList.contains('active');
+    if(active) { statusSpan.innerHTML = '✅ active · water flow ON'; toast('Irrigation zone activated'); }
+    else { statusSpan.innerHTML = '○ idle · water flow OFF'; toast('Irrigation zone deactivated'); }
+  };
+
+  // AI assistant chat handler with intelligent Q&A
+  function sendChatMessage() {
+    const input = document.getElementById('chatInput'); const msg = input.value.trim(); if(!msg) return;
+    const chatDiv = document.getElementById('chatbox');
+    chatDiv.innerHTML += `<div class="message user-message">${escapeHtml(msg)}</div>`;
+    input.value = '';
+    setTimeout(() => {
+      let reply = "I'm processing your agricultural query...";
+      const lower = msg.toLowerCase();
+      if(lower.includes('blight') || lower.includes('disease')) reply = "🌿 Leaf blight: apply Mancozeb or copper-based fungicide. Remove infected foliage and ensure proper drainage. AI recommends 7-day rotation.";
+      else if(lower.includes('irrigation')) reply = "💧 Smart irrigation suggests 20% reduction next 3 days due to forecast rain. Optimal moisture for maize: 65-75%.";
+      else if(lower.includes('fertilizer') || lower.includes('npk')) reply = "🧪 For maize, apply NPK 15-15-15 at 200kg/ha. Side-dress with nitrogen at knee-high stage.";
+      else if(lower.includes('yield') || lower.includes('harvest')) reply = "📈 Yield forecast for cassava: 24t/ha. Optimal harvest in 2-3 weeks. Check starch content.";
+      else if(lower.includes('drone')) reply = "🚁 Drone fleet active: thermal mapping complete for zone B. NDVI index shows 0.78 (healthy vegetation).";
+      else reply = "✅ AgriVision AI: I can assist with crop diseases, irrigation schedules, weather impact, or market prices. Could you specify your crop?";
+      chatDiv.innerHTML += `<div class="message ai-message">🤖 ${reply}</div>`;
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    }, 400);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
+  function escapeHtml(str){ return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+  window.sendChatMessage = sendChatMessage;
+
+  // add irrigation toggle initial state manual triggers
+  document.getElementById('toggleA')?.setAttribute('onclick','toggleIrrigation("toggleA","statusA")');
+  document.getElementById('toggleB')?.setAttribute('onclick','toggleIrrigation("toggleB","statusB")');
+
+  // on load
+  window.onload = () => { auth.init(); if(!auth.user) { document.getElementById('authContainer').classList.remove('hidden'); } else { auth.showApp(); } };
+  // helper for any missing demo actions
+  window.toast = toast;
+</script>
+</body>
+</html>
